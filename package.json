@@ -1,0 +1,24 @@
+{
+  "name": "bughaus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node -r @std/esm server.js",
+    "client": "node start-client.js"
+
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@std/esm": "^0.18.0",
+    "chai": "^4.1.2",
+    "concurrently": "^3.5.1",
+    "mocha": "^4.0.1"
+  },
+  "dependencies": {
+    "express": "^4.16.2"
+  },
+  "@std/esm": "cjs"
+}
