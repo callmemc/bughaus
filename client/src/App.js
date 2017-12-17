@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
 import './App.css';
 import HomePage from './HomePage';
+import GamePage from './GamePage';
 
 class PrimaryLayout extends Component {
   render() {
@@ -12,6 +13,7 @@ class PrimaryLayout extends Component {
         </header>
         <main>
           <Route path ="/" exact component={HomePage}/>
+          <Route path ="/game/:gameId" exact component={GamePage}/>
         </main>
       </div>
     );
