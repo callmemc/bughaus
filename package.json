@@ -7,7 +7,6 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node -r @std/esm server.js",
     "client": "node start-client.js"
-
   },
   "author": "",
   "license": "ISC",
@@ -18,7 +17,8 @@
     "mocha": "^4.0.1"
   },
   "dependencies": {
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "socket.io": "^2.0.4"
   },
   "@std/esm": "cjs"
 }

@@ -1,6 +1,12 @@
 import express from 'express';
+import socket from 'socket.io';
 const app = express();
 const server = require('http').createServer(app);
+const io = socket.listen(server);
+
+import socketServer from './socketServer';
+socketServer.attach(io);
+
 
 app.set('port', (process.env.PORT || 3001));
 
