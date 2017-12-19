@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-function attachListeners(socket, gameId) {  
+function attachListeners(socket, gameId) {
   socket.on('connect', (data) => {
     console.log('connection', gameId);
 
@@ -13,18 +13,14 @@ function attachListeners(socket, gameId) {
   });
 }
 
-// Initialize socket and attach listeners
-function initialize(gameId) {
-  const socket = io();
-  attachListeners(socket, gameId);  
+export default {
+  initialize: function(gameId) {
+    // Prevent the initial HTTP polling.  solution
+    // See https://stackoverflow.com/questions/41924713/node-js-socket-io-page-refresh-multiple-connections
+    // TODO: Make sure this is ok
+    const socket = io({transports: ['websocket'], upgrade: false});
+    attachListeners(socket, gameId);
 
-  return socket;
-}
-
-export default { initialize };
-
-// TODO: Requires socket to be initialized. Is this a bad idea?
-// Should the socket be a class instead?
-export function move() {
-
-}
+    return socket;
+  }
+};
