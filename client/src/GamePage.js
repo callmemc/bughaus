@@ -5,23 +5,32 @@ import socketClient from './socketClient';
 import chessjs from './chess.js';
 import Chessboard from './components/Chessboard';
 
-let socket;
-
 class GamePage extends Component {
+  constructor(props) {
+    super(props);
+
+    // Temporarily storing mutated chess object in component
+    this.chess = new chessjs.Chess();
+
+    this.state = {
+      board: this.chess.board()
+    };
+  }
+
   componentWillMount() {
     // Initialize socket connection when component mounts
     // TODO: Is this RIGHT?
     const gameId = this.props.match.params.gameId;
-    socket = socketClient.initialize(gameId);
+    this.socket = socketClient.initialize(gameId);
   }
 
   render() {
-    const fen = new chessjs.Chess().fen();
-
     return (
-      <div className="App">
+      <div className="GamePage">
         <h1>Game Page</h1>
-        <Chessboard fen={fen} />
+        <div className="ChessGame">
+          <Chessboard board={this.state.board} />
+        </div>
         <button onClick={this.makeMove}>Make Move</button>
       </div>
     );
@@ -29,7 +38,8 @@ class GamePage extends Component {
 
   makeMove = () => {
     // TODO: abstract?
-    socket.emit('move', 'position');
+    // TODO: recalculate board object... which is only updated when move is made
+    this.socket.emit('move', 'position');
   }
 }
 
