@@ -1,5 +1,5 @@
 // TODO: fork this and install through npm instead of copying into repo
-
+/*eslint-disable */
 /*
  * Copyright (c) 2017, Jeff Hlywa (jhlywa@gmail.com)
  * All rights reserved.
@@ -1667,3 +1667,4 @@ var Chess = function(fen) {
 if (typeof exports !== 'undefined') exports.Chess = Chess;
 /* export Chess object for any RequireJS compatible environment */
 // if (typeof define !== 'undefined') define( function () { return Chess;  });
+/*eslint-disable */

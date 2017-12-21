@@ -2,20 +2,9 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import socketClient from './socketClient';
-import chessjs from './chess.js';
-import Chessboard from './components/Chessboard';
+import ChessGame from './components/ChessGame';
 
 class GamePage extends Component {
-  constructor(props) {
-    super(props);
-
-    // Temporarily storing mutated chess object in component
-    this.chess = new chessjs.Chess();
-
-    this.state = {
-      board: this.chess.board()
-    };
-  }
 
   componentWillMount() {
     // Initialize socket connection when component mounts
@@ -28,9 +17,7 @@ class GamePage extends Component {
     return (
       <div className="GamePage">
         <h1>Game Page</h1>
-        <div className="ChessGame">
-          <Chessboard board={this.state.board} />
-        </div>
+        <ChessGame />
         <button onClick={this.makeMove}>Make Move</button>
       </div>
     );

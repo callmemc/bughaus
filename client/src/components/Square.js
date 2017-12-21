@@ -1,29 +1,37 @@
 import React, { Component } from 'react';
+import { DropTarget } from 'react-dnd';
+import Piece from './Piece';
+
+const squareTarget = {
+  canDrop: (props, monitor) => {
+    // TODO
+  },
+
+  drop: (props, monitor, component) => {
+    // TODO
+    console.log('drop');
+  }
+};
+
+function collect(connect, monitor) {
+  return {
+    connectDropTarget: connect.dropTarget()
+  };
+}
 
 class Square extends Component {
   render() {
     const { color, type, fileNum, rank }  = this.props;
     const squareColor = (fileNum + rank) % 2 === 0 ?
       'light' : 'dark';
+    const pieceComponent = type ? <Piece color={color} type={type} /> : null;
 
-    return (
+    return this.props.connectDropTarget(
       <div className={`Chessboard-square Chessboard-square--${squareColor}`}>
-        {this._getPiece()}
+        {pieceComponent}
       </div>
     );
   }
-
-  _getPiece() {
-    const { color, type } = this.props;
-    if (!type) {
-      return;
-    }
-
-    const imgSrc = color + type.toUpperCase();
-    const src = require(`../img/${imgSrc}.svg`);
-
-    return <img src={src} className="Piece__image" alt={type} />;
-  }
 }
 
-export default Square;
+export default DropTarget('PIECE', squareTarget, collect)(Square);
