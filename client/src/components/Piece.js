@@ -8,7 +8,9 @@ const pieceSource = {
     console.log('begin drag');
 
     // TODO: Return the data describing the dragged item
-    return {};
+    return {
+      square: props.square
+    };
   },
 
   endDrag: (props) => {

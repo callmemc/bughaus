@@ -23,6 +23,7 @@ function connectSocket(socket) {
 
 export default {
   attach: function attach(io) {
-    io.sockets.on('connection', connectSocket);
+    io.on('connection', connectSocket);
+    console.log('test');
   }
 };
