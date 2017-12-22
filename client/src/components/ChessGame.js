@@ -5,6 +5,7 @@ import { withRouter } from 'react-router-dom';
 import chessjs from '../chess.js';
 import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
+import PieceDragLayer from './PieceDragLayer';
 
 class ChessGame extends Component {
   constructor(props) {
@@ -30,6 +31,7 @@ class ChessGame extends Component {
       <div className="ChessGame">
         <Chessboard board={this.state.board}
           makeMove={this.makeMove} />
+        <PieceDragLayer />
       </div>
     );
   }

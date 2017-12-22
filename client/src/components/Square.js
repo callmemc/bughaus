@@ -9,9 +9,6 @@ const squareTarget = {
 
   drop: (props, monitor, component) => {
     const item = monitor.getItem();
-    // TODO
-    console.log('drop');
-
     props.makeMove({
       from: item.square,
       to: getSquare(props.fileNum, props.rankNum)

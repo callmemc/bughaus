@@ -25,8 +25,22 @@
   background-color: #eee;
 }
 
+.Piece {
+  display: flex;
+  flex: 1;
+}
+
 .Piece__image {
-  width: 45px;
-  height: 45px;
+  width: 44px;
+  height: 44px;
   margin: auto;
+  cursor: pointer;
+}
+
+.PieceDragLayer {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100;
+  left: 0;
+  top: 0;
 }
