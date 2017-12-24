@@ -7,10 +7,6 @@ function attachListeners(socket, gameId) {
     // watch game
     socket.emit('watch', gameId);
   });
-
-  socket.on('update', (data) => {
-    console.log('update', data);
-  });
 }
 
 export default {

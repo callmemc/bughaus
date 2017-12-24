@@ -24,6 +24,8 @@ class ChessGame extends Component {
     // TODO: Is this RIGHT?
     const gameId = this.props.match.params.gameId;
     this.socket = socketClient.initialize(gameId);
+
+    this.socket.on('update', this.update);
   }
 
   render() {
@@ -41,9 +43,18 @@ class ChessGame extends Component {
     // TODO: recalculate board object... which is only updated when move is made
     console.log(from, to);
     this.chess.move({ from, to});
-    this.setState({ board: this.chess.board() });
+    this._updateBoard();
+    this.socket.emit('move', this.chess.fen());
+  }
 
-    this.socket.emit('move', this.chess.fen()); // TODO
+  update = (fen) => {
+    this.chess = new chessjs.Chess(fen);
+    this._updateBoard();
+    console.log('updating', fen);
+  }
+
+  _updateBoard() {
+    this.setState({ board: this.chess.board() });
   }
 }
 
