@@ -6,6 +6,7 @@ import chessjs from '../chess.js';
 import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
 import PieceDragLayer from './PieceDragLayer';
+import _ from 'lodash';
 
 class ChessGame extends Component {
   constructor(props) {
@@ -13,10 +14,6 @@ class ChessGame extends Component {
 
     // Temporarily storing mutated chess object in component
     this.chess = new chessjs.Chess();
-
-    this.state = {
-      board: this.chess.board()
-    };
   }
 
   componentWillMount() {
@@ -29,6 +26,10 @@ class ChessGame extends Component {
   }
 
   render() {
+    if (!_.get(this.state, 'board')) {
+      return <div />;
+    }
+
     return (
       <div className="ChessGame">
         <Chessboard board={this.state.board}
@@ -41,7 +42,6 @@ class ChessGame extends Component {
   makeMove = ({from, to}) => {
     // TODO: abstract?
     // TODO: recalculate board object... which is only updated when move is made
-    console.log(from, to);
     this.chess.move({ from, to});
     this._updateBoard();
     this.socket.emit('move', this.chess.fen());
@@ -50,7 +50,6 @@ class ChessGame extends Component {
   update = (fen) => {
     this.chess = new chessjs.Chess(fen);
     this._updateBoard();
-    console.log('updating', fen);
   }
 
   _updateBoard() {

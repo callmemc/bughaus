@@ -8,14 +8,27 @@ function connectSocket(socket) {
     socketGameId = gameId;
 
     socket.join(gameId, () => {
-      // socket.emit('update', [initial fen]);
+      // TODO: Remove this when get position from api on initial game load?
+      socket.emit('update', getFen(gameId));
     });
   });
 
   socket.on('move', (data) => {
     console.log('MOVE!', socketGameId, data);
     socket.to(socketGameId).emit('update', data);
+    updateFen(socketGameId, data);
   });
+}
+
+// TODO: Replace this with actual DB that isn't just in memory
+let MOCKDB = {};
+function getFen(gameId) {
+  const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  return MOCKDB[gameId] || INITIAL_FEN;
+}
+
+function updateFen(gameId, fen) {
+  MOCKDB[gameId] = fen;
 }
 
 

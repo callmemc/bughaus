@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import './App.css';
 import HomePage from './HomePage';
 import GamePage from './GamePage';
@@ -21,9 +22,11 @@ class PrimaryLayout extends Component {
 }
 
 const App = () => (
-  <BrowserRouter>
-    <PrimaryLayout />
-  </BrowserRouter>
+  <MuiThemeProvider>
+    <BrowserRouter>
+      <PrimaryLayout />
+    </BrowserRouter>
+  </MuiThemeProvider>
 );
 
 export default App;
