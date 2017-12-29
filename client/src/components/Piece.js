@@ -32,7 +32,7 @@ class Piece extends Component {
 
   render() {
     const { color, type, connectDragSource, isDragging } = this.props;
-    const opacity = isDragging ? 0 : 1;
+    const opacity = isDragging ? 0.5 : 1;
 
     return connectDragSource(
       <div className="Piece" style={{opacity}}>
