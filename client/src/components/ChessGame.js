@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
+import _ from 'lodash';
 import chessjs from '../chess.js';
 import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
 import PieceDragLayer from './PieceDragLayer';
-import _ from 'lodash';
+import Sidebar from './Sidebar';
 
 class ChessGame extends Component {
   constructor(props) {
@@ -34,14 +35,13 @@ class ChessGame extends Component {
       <div className="ChessGame">
         <Chessboard board={this.state.board}
           makeMove={this.makeMove} />
+        <Sidebar turn={this.state.turn} />
         <PieceDragLayer />
       </div>
     );
   }
 
   makeMove = ({from, to}) => {
-    // TODO: abstract?
-    // TODO: recalculate board object... which is only updated when move is made
     this.chess.move({ from, to});
     this._updateBoard();
     this.socket.emit('move', this.chess.fen());
@@ -53,7 +53,10 @@ class ChessGame extends Component {
   }
 
   _updateBoard() {
-    this.setState({ board: this.chess.board() });
+    this.setState({
+      board: this.chess.board(),
+      turn: this.chess.turn()
+    });
   }
 }
 
