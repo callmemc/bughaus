@@ -8,6 +8,7 @@ import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
 import PieceDragLayer from './PieceDragLayer';
 import Sidebar from './Sidebar';
+import Reserve from './Reserve';
 
 class ChessGame extends Component {
   constructor(props) {
@@ -15,6 +16,11 @@ class ChessGame extends Component {
 
     // Temporarily storing mutated chess object in component
     this.chess = new chessjs.Chess();
+
+    this.state = {
+      wReserve: [],
+      bReserve: [],
+    };
   }
 
   componentWillMount() {
@@ -33,23 +39,43 @@ class ChessGame extends Component {
 
     return (
       <div className="ChessGame">
-        <Chessboard board={this.state.board}
-          makeMove={this.makeMove} />
-        <Sidebar turn={this.state.turn} />
+        <Reserve color="w" queue={this.state.bReserve} />
+        <div className="ChessGame__play">
+          <Chessboard board={this.state.board}
+            makeMove={this.makeMove} />
+          <Sidebar turn={this.state.turn} />
+        </div>
+        <Reserve color="b" queue={this.state.wReserve} />
         <PieceDragLayer />
       </div>
     );
   }
 
   makeMove = ({from, to}) => {
-    this.chess.move({ from, to});
-    this._updateBoard();
-    this.socket.emit('move', this.chess.fen());
+    const moveResult = this.chess.move({ from, to});
+
+    // chess.move() returns null if move was invalid
+    if (moveResult) {
+      const { captured, color } = moveResult;
+
+      if (captured) {
+        this._updateReserve(captured, color);
+      }
+
+      this._updateBoard();
+      this.socket.emit('move', {
+        fen: this.chess.fen(),
+        wReserve: this.state.wReserve,
+        bReserve: this.state.bReserve
+      });
+    }
   }
 
-  update = (fen) => {
-    this.chess = new chessjs.Chess(fen);
+  update = (data) => {
+    this.chess = new chessjs.Chess(data.fen);
     this._updateBoard();
+    this.setState({ wReserve: data.wReserve });
+    this.setState({ bReserve: data.bReserve });
   }
 
   _updateBoard() {
@@ -57,6 +83,11 @@ class ChessGame extends Component {
       board: this.chess.board(),
       turn: this.chess.turn()
     });
+  }
+
+  _updateReserve(capturedPiece, color) {
+    const reserveName = color === 'w' ? 'wReserve' : 'bReserve';
+    this.setState({ [reserveName]: [...this.state[reserveName], capturedPiece] });
   }
 }
 

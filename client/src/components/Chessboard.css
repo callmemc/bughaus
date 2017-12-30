@@ -1,11 +1,24 @@
-.ChessGame {
+.GamePage {
   display: flex;
   justify-content: center;
+}
+
+.ChessGame {
   margin-top: 30px;
+}
+
+.ChessGame__play {
+  display: flex;
+  justify-content: center;
+}
+
+.Reserve {
+  display: flex;
 }
 
 .Chessboard {
 }
+
 .Chessboard-row {
   display: flex;
 }

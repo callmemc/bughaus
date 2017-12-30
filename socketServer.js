@@ -24,11 +24,11 @@ function connectSocket(socket) {
 let MOCKDB = {};
 function getFen(gameId) {
   const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  return MOCKDB[gameId] || INITIAL_FEN;
+  return MOCKDB[gameId] || { fen: INITIAL_FEN, wReserve: [], bReserve: [] };
 }
 
-function updateFen(gameId, fen) {
-  MOCKDB[gameId] = fen;
+function updateFen(gameId, data) {
+  MOCKDB[gameId] = data;
 }
 
 
