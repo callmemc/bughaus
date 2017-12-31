@@ -5,7 +5,8 @@ class PieceImage extends Component {
     const { color, type } = this.props;
     const src = require(`../img/${color + type.toUpperCase()}.svg`);
 
-    return <img src={src} className="Piece__image" alt={type} />;
+    return <img src={src} className="Piece__image" draggable="false"
+      alt={type} />;
   }
 }
 

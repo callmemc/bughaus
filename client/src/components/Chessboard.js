@@ -18,9 +18,11 @@ class Chessboard extends Component {
               <Square
                 key={fileIndex}
                 fileNum={fileIndex+1}
+                isGameOver={this.props.isGameOver}
                 makeMove={this.props.makeMove}
                 rankNum={8-rank}
-                piece={piece} />
+                piece={piece}
+                isTurn={this.props.turn === _.get(piece, 'color')} />
             )}
           </div>
         )}

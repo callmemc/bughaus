@@ -13,7 +13,10 @@ class Reserve extends Component {
       <div className="Reserve">
         {this.props.queue.map((piece, i) => (
           <div className="Reserve__piece" key={i}>
-            <Piece color={this.props.color} type={piece} />
+            <Piece
+              color={this.props.color}
+              isGameOver={this.props.isGameOver}
+              type={piece} />
           </div>
         ))}
       </div>

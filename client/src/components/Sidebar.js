@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 class Sidebar extends Component {
   static propTypes = {
+    isGameOver: PropTypes.bool,
     turn: PropTypes.string
   }
 
@@ -10,8 +11,15 @@ class Sidebar extends Component {
     const { turn } = this.props;
     return (
       <div className="Sidebar">
-        <PlayerBox turn={turn} color='b'  />
-        <PlayerBox turn={turn} color='w' isUser />
+        <PlayerBox
+          color='b'
+          isGameOver={this.props.isGameOver}
+          turn={turn} />
+        <PlayerBox
+          color='w'
+          isGameOver={this.props.isGameOver}
+          turn={turn}
+          isUser />
       </div>
     );
   }
@@ -25,11 +33,16 @@ class PlayerBox extends Component {
   }
 
   render() {
-    if (this.props.turn !== this.props.color) {
-      return <div />;
+    let text;
+
+    if (this.props.turn === this.props.color) {
+      if (this.props.isGameOver) {
+        text = 'Checkmated';
+      } else {
+        text =  this.props.isUser ? 'Your turn' : 'Waiting for opponent';
+      }
     }
 
-    const text = this.props.isUser ? 'Your turn' : 'Waiting for opponent';
     return <div>{text}</div>;
   }
 }

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { DropTarget } from 'react-dnd';
 import Piece from './Piece';
+import classNames from 'classnames';
+import _ from 'lodash';
 
 const squareTarget = {
   // canDrop: (props, monitor) => {
@@ -29,12 +31,15 @@ function getSquare(fileNum, rankNum) {
 
 class Square extends Component {
   render() {
-    const { fileNum, rankNum }  = this.props;
+    const { fileNum, rankNum, piece }  = this.props;
     const squareColor = (fileNum + rankNum) % 2 === 0 ?
       'dark' : 'light';
+    const isCheckmatedKing = this.props.isGameOver && _.get(piece, 'type') === 'k'
+      && this.props.isTurn;
 
     return this.props.connectDropTarget(
-      <div className={`Chessboard-square Chessboard-square--${squareColor}`}>
+      <div className={classNames(`Chessboard-square Chessboard-square--${squareColor}`,
+        { 'Chessboard-square--checkmated': isCheckmatedKing })}>
         {this.getPieceComponent()}
       </div>
     );
@@ -49,7 +54,9 @@ class Square extends Component {
     const square = getSquare(fileNum, rankNum);
 
     return (
-      <Piece color={piece.color} type={piece.type} square={square} />
+      <Piece color={piece.color}
+        isGameOver={this.props.isGameOver}
+        type={piece.type} square={square} />
     );
   }
 }

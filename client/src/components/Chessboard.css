@@ -30,6 +30,10 @@
   box-sizing: border-box;  /* collapse borders */
 }
 
+.Chessboard-square--checkmated {
+  border: 2px solid red;
+}
+
 .Chessboard-square--dark {
   background-color: #917156;
 }
@@ -64,5 +68,5 @@
   flex-direction: column;
   justify-content: space-between;
   font-size: 13px;
-  width: 70px;
+  width: 75px;
 }

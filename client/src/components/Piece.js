@@ -37,6 +37,12 @@ const pieceSource = {
       type: props.type,
       square: props.square
     };
+  },
+
+  canDrag: (props, monitor) => {
+    // TODO: Figure out way to not have to pass down props many layers
+    // Redux + wrapper component?
+    return !props.isGameOver;
   }
 };
 

@@ -39,13 +39,24 @@ class ChessGame extends Component {
 
     return (
       <div className="ChessGame">
-        <Reserve color="w" queue={this.state.bReserve} />
+        <Reserve
+          color="w"
+          isGameOver={this.state.isGameOver}
+          queue={this.state.bReserve} />
         <div className="ChessGame__play">
-          <Chessboard board={this.state.board}
-            makeMove={this.makeMove} />
-          <Sidebar turn={this.state.turn} />
+          <Chessboard
+            board={this.state.board}
+            isGameOver={this.state.isGameOver}
+            makeMove={this.makeMove}
+            turn={this.state.turn} />
+          <Sidebar
+            isGameOver={this.state.isGameOver}
+            turn={this.state.turn} />
         </div>
-        <Reserve color="b" queue={this.state.wReserve} />
+        <Reserve
+          color="b"
+          isGameOver={this.state.isGameOver}
+          queue={this.state.wReserve} />
         <PieceDragLayer />
       </div>
     );
@@ -81,6 +92,7 @@ class ChessGame extends Component {
   _updateBoard() {
     this.setState({
       board: this.chess.board(),
+      isGameOver: this.chess.in_checkmate(), // turn is in checkmate
       turn: this.chess.turn()
     });
   }
