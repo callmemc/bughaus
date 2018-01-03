@@ -21,10 +21,14 @@ class Piece extends Component {
     const opacity = isDragging ? 0.5 : 1;
 
     return connectDragSource(
-      <div className="Piece" style={{opacity}}>
+      <div className="Piece" style={{opacity}} onMouseDown={this.handleMouseDown}>
         <PieceImage color={color} type={type} />
       </div>
     );
+  }
+
+  handleMouseDown = () => {
+    this.props.onDragStart(this.props.square);
   }
 }
 
@@ -43,6 +47,10 @@ const pieceSource = {
     // TODO: Figure out way to not have to pass down props many layers
     // Redux + wrapper component?
     return !props.isGameOver;
+  },
+
+  endDrag: (props) => {
+    props.onDragEnd();
   }
 };
 

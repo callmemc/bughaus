@@ -13,7 +13,7 @@ const squareTarget = {
     const item = monitor.getItem();
     props.makeMove({
       from: item.square,
-      to: getSquare(props.fileNum, props.rankNum)
+      to: props.square
     });
   }
 };
@@ -24,39 +24,37 @@ function collect(connect, monitor) {
   };
 }
 
-function getSquare(fileNum, rankNum) {
-  const fileChr = String.fromCharCode(96 + fileNum);
-  return fileChr + rankNum;
-}
-
 class Square extends Component {
   render() {
-    const { fileNum, rankNum, piece }  = this.props;
-    const squareColor = (fileNum + rankNum) % 2 === 0 ?
-      'dark' : 'light';
-    const isCheckmatedKing = this.props.isGameOver && _.get(piece, 'type') === 'k'
-      && this.props.isTurn;
+    // TODO: move this to higher props
+    const isCheckmatedKing = this.props.isGameOver &&
+      this.props.pieceType === 'k' &&
+      this.props.isTurn;
 
     return this.props.connectDropTarget(
-      <div className={classNames(`Chessboard-square Chessboard-square--${squareColor}`,
-        { 'Chessboard-square--checkmated': isCheckmatedKing })}>
+      <div className={classNames(`Chessboard-square Chessboard-square--${this.props.squareColor}`,
+        {
+          'Chessboard-square--checkmated': isCheckmatedKing,
+          'Chessboard-square--active': this.props.isActive,
+          'Chessboard-square--move': this.props.isMove })}>
         {this.getPieceComponent()}
       </div>
     );
   }
 
   getPieceComponent() {
-    const { fileNum, rankNum, piece }  = this.props;
-    if (!piece) {
+    if (!this.props.pieceType) {
       return null;
     }
 
-    const square = getSquare(fileNum, rankNum);
-
     return (
-      <Piece color={piece.color}
+      <Piece
+        color={this.props.pieceColor}
         isGameOver={this.props.isGameOver}
-        type={piece.type} square={square} />
+        onDragEnd={this.props.onDragEnd}
+        onDragStart={this.props.onDragStart}
+        type={this.props.pieceType}
+        square={this.props.square} />
     );
   }
 }

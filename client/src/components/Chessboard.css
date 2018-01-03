@@ -42,6 +42,14 @@
   background-color: #eee;
 }
 
+.Chessboard-square--active {
+  background-color: green;
+}
+
+.Chessboard-square--move {
+  border: 3px solid green;
+}
+
 .Piece {
   display: flex;
   flex: 1;

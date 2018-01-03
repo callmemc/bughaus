@@ -45,9 +45,13 @@ class ChessGame extends Component {
           queue={this.state.bReserve} />
         <div className="ChessGame__play">
           <Chessboard
+            activeSquare={this.state.activeSquare}
+            moves={this.state.moves}
             board={this.state.board}
             isGameOver={this.state.isGameOver}
             makeMove={this.makeMove}
+            onDragEnd={this.onDragEnd}
+            onDragStart={this.onDragStart}
             turn={this.state.turn} />
           <Sidebar
             isGameOver={this.state.isGameOver}
@@ -80,6 +84,27 @@ class ChessGame extends Component {
         bReserve: this.state.bReserve
       });
     }
+  }
+
+  onDragEnd = (square) => {
+    this.setState({
+      activeSquare: undefined,
+      moves: undefined
+    });
+  }
+
+  onDragStart = (square) => {
+    // if (this.state.activeSquare === square) {
+    //   this.setState({
+    //     activeSquare: undefined,
+    //     moves: undefined
+    //   });
+    // } else {
+      this.setState({
+        activeSquare: square,
+        moves: this.chess.moves({ verbose: true, square })
+      });
+    // }
   }
 
   update = (data) => {
