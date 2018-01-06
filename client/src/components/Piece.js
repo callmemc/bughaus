@@ -7,6 +7,7 @@ import PieceImage from './PieceImage';
 class Piece extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
+    isTurn: PropTypes.bool,
     type: PropTypes.string.isRequired
   }
 
@@ -28,7 +29,9 @@ class Piece extends Component {
   }
 
   handleMouseDown = () => {
-    this.props.onDragStart(this.props.square);
+    if (this.props.isTurn && !this.props.isGameOver) {
+      this.props.onSelect(this.props.square);
+    }
   }
 }
 

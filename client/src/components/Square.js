@@ -51,8 +51,9 @@ class Square extends Component {
       <Piece
         color={this.props.pieceColor}
         isGameOver={this.props.isGameOver}
+        isTurn={this.props.isTurn}
         onDragEnd={this.props.onDragEnd}
-        onDragStart={this.props.onDragStart}
+        onSelect={this.props.onSelect}
         type={this.props.pieceType}
         square={this.props.square} />
     );

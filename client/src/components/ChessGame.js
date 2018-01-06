@@ -51,7 +51,7 @@ class ChessGame extends Component {
             isGameOver={this.state.isGameOver}
             makeMove={this.makeMove}
             onDragEnd={this.onDragEnd}
-            onDragStart={this.onDragStart}
+            onSelect={this.onSelect}
             turn={this.state.turn} />
           <Sidebar
             isGameOver={this.state.isGameOver}
@@ -93,7 +93,7 @@ class ChessGame extends Component {
     });
   }
 
-  onDragStart = (square) => {
+  onSelect = (square) => {
     // if (this.state.activeSquare === square) {
     //   this.setState({
     //     activeSquare: undefined,
