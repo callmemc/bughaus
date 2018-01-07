@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-import { DragDropContext } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
-import PieceDragLayer from './components/PieceDragLayer';
 
 class GamePage extends Component {
   constructor() {
@@ -15,48 +12,33 @@ class GamePage extends Component {
     // Initialize socket connection when component mounts
     const gameId = this.props.match.params.gameId;
     this.socket = socketClient.initialize(gameId);
-    this.socket.on('updateBoard', this.updateBoardListener);
-
-    // TODO: Remove this in favor of api call
-    this.socket.on('updateGame', this.updateGameListener);
+    this.socket.on('update', this.update);
   }
 
   render() {
     return (
       <div className="GamePage">
-        {this._renderChessGame(0)}
-        <div className="PartnerGame">
-          {this._renderChessGame(1)}
-        </div>
-        <PieceDragLayer />
+        {this._renderChessGame()}
       </div>
     );
   }
 
-  updateBoardListener = ({boardNum, board}) => {
-    this.setState({ [`game${boardNum}`]: board });
+  update = (data) => {
+    this.setState({game1: data})
   }
 
-  updateGameListener = (data) => {
-    this.setState({
-      game0: data[0],
-      game1: data[1]
-    });
+  handleMove = (data) => {
+    this.socket.emit('move', data);
   }
 
-  handleMove = (boardNum, data) => {
-    this.socket.emit('move', { boardNum, board: data } );
-  }
-
-  _renderChessGame(boardNum) {
-    const flipped = boardNum === 0 ? false : true;
+  _renderChessGame(flipped) {
     return (
       <ChessGame
-        {...this.state[`game${boardNum}`]}
-        onMove={data => this.handleMove(boardNum, data)}
+        {...this.state.game1}
+        onMove={this.handleMove}
         flipped={flipped} />
     );
   }
 }
 
-export default withRouter(DragDropContext(HTML5Backend)(GamePage));
+export default withRouter(GamePage);
