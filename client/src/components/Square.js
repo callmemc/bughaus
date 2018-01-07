@@ -11,7 +11,7 @@ const squareTarget = {
 
   drop: (props, monitor, component) => {
     const item = monitor.getItem();
-    props.makeMove({
+    props.onDropPiece({
       from: item.square,
       to: props.square
     });

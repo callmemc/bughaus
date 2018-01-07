@@ -28,8 +28,8 @@ class Chessboard extends Component {
                 isMove={isMove}
                 isGameOver={this.props.isGameOver}
                 onDragEnd={this.props.onDragEnd}
+                onDropPiece={this.props.onDropPiece}
                 onSelect={this.props.onSelect}
-                makeMove={this.props.makeMove}
                 rankNum={8-rank}
                 pieceType={_.get(piece, 'type')}
                 pieceColor={_.get(piece, 'color')}

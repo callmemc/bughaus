@@ -7,6 +7,7 @@ import chessjs from '../chess.js';
 import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
 import PieceDragLayer from './PieceDragLayer';
+import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
 
@@ -49,7 +50,7 @@ class ChessGame extends Component {
             moves={this.state.moves}
             board={this.state.board}
             isGameOver={this.state.isGameOver}
-            makeMove={this.makeMove}
+            onDropPiece={this.onDropPiece}
             onDragEnd={this.onDragEnd}
             onSelect={this.onSelect}
             turn={this.state.turn} />
@@ -62,28 +63,61 @@ class ChessGame extends Component {
           isGameOver={this.state.isGameOver}
           queue={this.state.wReserve} />
         <PieceDragLayer />
+        {this._renderPromotionDialog()}
       </div>
     );
   }
 
-  makeMove = ({from, to}) => {
-    const moveResult = this.chess.move({ from, to});
-
-    // chess.move() returns null if move was invalid
-    if (moveResult) {
-      const { captured, color } = moveResult;
-
-      if (captured) {
-        this._updateReserve(captured, color);
-      }
-
-      this._updateBoard();
-      this.socket.emit('move', {
-        fen: this.chess.fen(),
-        wReserve: this.state.wReserve,
-        bReserve: this.state.bReserve
-      });
+  onDropPiece = ({from, to}) => {
+    if (!this.state.moves) {
+      return;
     }
+
+    const promotionMoves = this.state.moves.filter(move =>
+      move.from === from && move.to === to && move.promotion);
+
+    // Promotion
+    if (promotionMoves.length > 0) {
+      this.setState({
+        activePromotion: {
+          from,
+          to,
+          pieces: promotionMoves.map(move => move.promotion)
+        }
+      });
+      return;
+    }
+
+    const moveResult = this.chess.move({ from, to });
+    this._makeMove(moveResult);
+
+  }
+
+  onSelectPromotion = (promotionPiece) => {
+    const { from, to } = this.state.activePromotion;
+    const moveResult = this.chess.move({ from, to, promotion: promotionPiece });
+    this.setState({ activePromotion: undefined });
+    this._makeMove(moveResult);
+  }
+
+  _makeMove(moveResult) {
+    // chess.move() returns null if move was invalid
+    if (!moveResult) {
+      return;
+    }
+
+    const { captured, color } = moveResult;
+
+    if (captured) {
+      this._updateReserve(captured, color);
+    }
+
+    this._updateBoard();
+    this.socket.emit('move', {
+      fen: this.chess.fen(),
+      wReserve: this.state.wReserve,
+      bReserve: this.state.bReserve
+    });
   }
 
   onDragEnd = (square) => {
@@ -125,6 +159,17 @@ class ChessGame extends Component {
   _updateReserve(capturedPiece, color) {
     const reserveName = color === 'w' ? 'wReserve' : 'bReserve';
     this.setState({ [reserveName]: [...this.state[reserveName], capturedPiece] });
+  }
+
+  _renderPromotionDialog() {
+    if (this.state.activePromotion) {
+      return (
+        <PromotionDialog
+          color={this.state.turn}
+          onSelectPromotion={this.onSelectPromotion}
+          pieces={this.state.activePromotion.pieces} />
+      );
+    }
   }
 }
 
