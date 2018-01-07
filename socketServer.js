@@ -28,7 +28,7 @@ function getGame(gameId) {
   };
   const INITIAL_GAME = [INITIAL_BOARD, INITIAL_BOARD];
 
-  // TODO: Initialize game on an api create call instead
+  // TODO: Initialize no here, but on an api create call
   if (!MOCKDB[gameId]) {
     MOCKDB[gameId] = INITIAL_GAME;
   }
