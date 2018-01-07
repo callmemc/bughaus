@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-import { DragDropContext } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
 import _ from 'lodash';
 import chessjs from '../chess.js';
 import Chessboard from './Chessboard';
-import PieceDragLayer from './PieceDragLayer';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
@@ -85,7 +82,6 @@ class ChessGame extends Component {
           color={topColor}
           isGameOver={this.state.isGameOver}
           queue={bottomReserve} />
-        <PieceDragLayer />
         {this._renderPromotionDialog()}
       </div>
     );
@@ -207,4 +203,4 @@ class ChessGame extends Component {
   }
 }
 
-export default DragDropContext(HTML5Backend)(ChessGame);
+export default ChessGame;
