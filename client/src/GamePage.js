@@ -34,13 +34,13 @@ class GamePage extends Component {
   }
 
   updateBoardListener = ({boardNum, board}) => {
-    this.setState({ [`game${boardNum}`]: board });
+    this.setState({ [`board${boardNum}`]: board });
   }
 
   updateGameListener = (data) => {
     this.setState({
-      game0: data[0],
-      game1: data[1]
+      board0: data[0],
+      board1: data[1]
     });
   }
 
@@ -52,7 +52,7 @@ class GamePage extends Component {
     const flipped = boardNum === 0 ? false : true;
     return (
       <ChessGame
-        {...this.state[`game${boardNum}`]}
+        {...this.state[`board${boardNum}`]}
         onMove={data => this.handleMove(boardNum, data)}
         flipped={flipped} />
     );
