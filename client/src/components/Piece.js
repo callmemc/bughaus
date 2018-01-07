@@ -49,7 +49,7 @@ const pieceSource = {
   canDrag: (props, monitor) => {
     // TODO: Figure out way to not have to pass down props many layers
     // Redux + wrapper component?
-    return !props.isGameOver;
+    return !props.isGameOver && props.isTurn;
   },
 
   endDrag: (props) => {

@@ -8,29 +8,37 @@ function connectSocket(socket) {
     socketGameId = gameId;
 
     socket.join(gameId, () => {
-      // TODO: Remove this when get position from api on initial game load?
-      socket.emit('update', getFen(gameId));
+      // TODO: Remove this in favor of api call
+      socket.emit('updateGame', getGame(gameId));
     });
   });
 
-  socket.on('move', (data) => {
-    console.log('MOVE!', socketGameId, data);
-    socket.to(socketGameId).emit('update', data);
-    updateFen(socketGameId, data);
+  socket.on('move', ({board, boardNum}) => {
+    socket.to(socketGameId).emit('updateBoard', {board, boardNum});
+    updateBoard(socketGameId, boardNum, board);
   });
 }
 
 // TODO: Replace this with actual DB that isn't just in memory
 let MOCKDB = {};
-function getFen(gameId) {
-  const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  return MOCKDB[gameId] || { fen: INITIAL_FEN, wReserve: '', bReserve: '' };
+function getGame(gameId) {
+  const INITIAL_BOARD = {
+    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    wReserve: '', bReserve: ''
+  };
+  const INITIAL_GAME = [INITIAL_BOARD, INITIAL_BOARD];
+
+  // TODO: Initialize no here, but on an api create call
+  if (!MOCKDB[gameId]) {
+    MOCKDB[gameId] = INITIAL_GAME;
+  }
+
+  return MOCKDB[gameId];
 }
 
-function updateFen(gameId, data) {
-  MOCKDB[gameId] = data;
+function updateBoard(gameId, boardNum, board) {
+  MOCKDB[gameId][boardNum] = board;
 }
-
 
 export default {
   attach: function attach(io) {
