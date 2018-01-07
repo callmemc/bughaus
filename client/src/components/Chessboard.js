@@ -1,22 +1,28 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import _ from 'lodash';
 
 import Square from './Square';
 import './Chessboard.css';
 
 class Chessboard extends Component {
+  static propTypes = {
+    flipped: PropTypes.bool
+  }
+
   render() {
     const { board, moves } = this.props;
     if (!board) {
       return <div></div>;
     }
+
     return (
       <div>
         {_.map(board, (row, rank) =>
           <div className="Chessboard-row" key={rank}>
             {_.map(row, (piece, fileIndex) => {
-              const fileNum = fileIndex+1;
-              const rankNum = 8 - rank;
+              const fileNum = this.props.flipped ? 8 - fileIndex : fileIndex + 1;
+              const rankNum = this.props.flipped ? rank + 1 : 8 - rank;
               const square = String.fromCharCode(96 + fileNum) + rankNum;
               const squareColor = (fileNum + rankNum) % 2 === 0 ?
                 'dark' : 'light';

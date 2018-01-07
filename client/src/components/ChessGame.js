@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import chessjs from '../chess.js';
-import socketClient from '../socketClient';
 import Chessboard from './Chessboard';
 import PieceDragLayer from './PieceDragLayer';
 import PromotionDialog from './PromotionDialog';
@@ -19,18 +17,26 @@ class ChessGame extends Component {
     this.chess = new chessjs.Chess();
 
     this.state = {
-      wReserve: [],
-      bReserve: [],
+      flipped: !!this.props.flipped,
+      wReserve: '',
+      bReserve: ''
     };
   }
 
-  componentWillMount() {
-    // Initialize socket connection when component mounts
-    // TODO: Is this RIGHT?
-    const gameId = this.props.match.params.gameId;
-    this.socket = socketClient.initialize(gameId);
+  // Hold internal state for quick update
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.fen !== this.state.fen) {
+      this.chess = new chessjs.Chess(nextProps.fen);
+      this._updateBoard();
+    }
 
-    this.socket.on('update', this.update);
+    if (nextProps.wReserve !== this.state.wReserve) {
+      this.setState({wReserve: nextProps.wReserve})
+    }
+
+    if (nextProps.bReserve !== this.state.bReserve) {
+      this.setState({bReserve: nextProps.bReserve})
+    }
   }
 
   render() {
@@ -38,15 +44,29 @@ class ChessGame extends Component {
       return <div />;
     }
 
+    let bottomColor, topColor, bottomReserve, topReserve;
+    if (this.state.flipped) {
+      bottomColor = 'b';
+      topColor = 'w';
+      bottomReserve = this.state.bReserve;
+      topReserve = this.state.wReserve;
+    } else {
+      bottomColor = 'w';
+      topColor = 'b';
+      bottomReserve = this.state.wReserve;
+      topReserve = this.state.bReserve;
+    }
+
     return (
       <div className="ChessGame">
         <Reserve
-          color="w"
+          color={bottomColor}
           isGameOver={this.state.isGameOver}
-          queue={this.state.bReserve} />
+          queue={topReserve} />
         <div className="ChessGame__play">
           <Chessboard
             activeSquare={this.state.activeSquare}
+            flipped={this.state.flipped}
             moves={this.state.moves}
             board={this.state.board}
             isGameOver={this.state.isGameOver}
@@ -55,13 +75,16 @@ class ChessGame extends Component {
             onSelect={this.onSelect}
             turn={this.state.turn} />
           <Sidebar
+            bottomColor={bottomColor}
+            topColor={topColor}
             isGameOver={this.state.isGameOver}
+            onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
         <Reserve
-          color="b"
+          color={topColor}
           isGameOver={this.state.isGameOver}
-          queue={this.state.wReserve} />
+          queue={bottomReserve} />
         <PieceDragLayer />
         {this._renderPromotionDialog()}
       </div>
@@ -113,7 +136,7 @@ class ChessGame extends Component {
     }
 
     this._updateBoard();
-    this.socket.emit('move', {
+    this.props.onMove({
       fen: this.chess.fen(),
       wReserve: this.state.wReserve,
       bReserve: this.state.bReserve
@@ -141,24 +164,35 @@ class ChessGame extends Component {
     // }
   }
 
-  update = (data) => {
-    this.chess = new chessjs.Chess(data.fen);
-    this._updateBoard();
-    this.setState({ wReserve: data.wReserve });
-    this.setState({ bReserve: data.bReserve });
+  onFlip = () => {
+    this.setState({
+      flipped: !this.state.flipped,
+      board: this._getBoard({flipped: !this.state.flipped})
+    });
   }
 
   _updateBoard() {
     this.setState({
-      board: this.chess.board(),
+      board: this._getBoard({flipped: this.state.flipped}),
       isGameOver: this.chess.in_checkmate(), // turn is in checkmate
       turn: this.chess.turn()
     });
   }
 
+  _getBoard({flipped}) {
+    let board = this.chess.board();
+
+    if (flipped) {
+      board.reverse().forEach(row => row.reverse());
+    }
+
+    return board;
+  }
+
   _updateReserve(capturedPiece, color) {
     const reserveName = color === 'w' ? 'wReserve' : 'bReserve';
-    this.setState({ [reserveName]: [...this.state[reserveName], capturedPiece] });
+    const newReserve = this.state[reserveName] + capturedPiece;
+    this.setState({ [reserveName]: newReserve });
   }
 
   _renderPromotionDialog() {
@@ -173,4 +207,4 @@ class ChessGame extends Component {
   }
 }
 
-export default withRouter(DragDropContext(HTML5Backend)(ChessGame));
+export default DragDropContext(HTML5Backend)(ChessGame);

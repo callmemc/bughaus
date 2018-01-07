@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { DropTarget } from 'react-dnd';
 import Piece from './Piece';
 import classNames from 'classnames';
-import _ from 'lodash';
 
 const squareTarget = {
   // canDrop: (props, monitor) => {

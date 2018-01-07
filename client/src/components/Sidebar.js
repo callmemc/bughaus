@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 
 class Sidebar extends Component {
   static propTypes = {
+    bottomColor: PropTypes.oneOf(['w', 'b']),
+    topColor: PropTypes.oneOf(['w', 'b']),
     isGameOver: PropTypes.bool,
     turn: PropTypes.string
   }
@@ -12,11 +14,14 @@ class Sidebar extends Component {
     return (
       <div className="Sidebar">
         <PlayerBox
-          color='b'
+          color={this.props.topColor}
           isGameOver={this.props.isGameOver}
           turn={turn} />
+        <button onClick={this.props.onFlip}>
+          Flip
+        </button>
         <PlayerBox
-          color='w'
+          color={this.props.bottomColor}
           isGameOver={this.props.isGameOver}
           turn={turn}
           isUser />
