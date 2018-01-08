@@ -33,14 +33,14 @@ function collect(connect, monitor) {
 class Square extends Component {
   render() {
     // TODO: move this to higher props
-    const isCheckmatedKing = this.props.isGameOver &&
+    const isCheckedKing = this.props.inCheck &&
       this.props.pieceType === 'k' &&
       this.props.isTurn;
 
     return this.props.connectDropTarget(
       <div className={classNames(`Chessboard-square Chessboard-square--${this.props.squareColor}`,
         {
-          'Chessboard-square--checkmated': isCheckmatedKing,
+          'Chessboard-square--checked': isCheckedKing,
           'Chessboard-square--active': this.props.isActive,
           'Chessboard-square--move': this.props.isMove })}>
         {this.getPieceComponent()}

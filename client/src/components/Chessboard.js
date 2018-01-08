@@ -32,6 +32,7 @@ class Chessboard extends Component {
                 fileNum={fileIndex+1}
                 isActive={square === this.props.activeSquare}
                 isMove={isMove}
+                inCheck={this.props.inCheck}
                 isGameOver={this.props.isGameOver}
                 onDragEnd={this.props.onDragEnd}
                 onDropPiece={this.props.onDropPiece}

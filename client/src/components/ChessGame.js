@@ -59,6 +59,7 @@ class ChessGame extends Component {
             flipped={this.state.flipped}
             moves={this.state.moves}
             board={this.state.board}
+            inCheck={this.state.inCheck}
             isGameOver={this.state.isGameOver}
             onDropPiece={this.onDropPiece}
             onDropPieceFromReserve={this.onDropPieceFromReserve}
@@ -175,6 +176,7 @@ class ChessGame extends Component {
       board: this._getBoard({flipped: this.state.flipped}),
       fen: this.chess.fen(),
       isGameOver: this.chess.in_checkmate(), // turn is in checkmate
+      inCheck: this.chess.in_check(),
       turn: this.chess.turn()
     });
   }

@@ -31,7 +31,7 @@
   box-sizing: border-box;  /* collapse borders */
 }
 
-.Chessboard-square--checkmated {
+.Chessboard-square--checked {
   border: 2px solid red;
 }
 
