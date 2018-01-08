@@ -10,10 +10,17 @@ const squareTarget = {
 
   drop: (props, monitor, component) => {
     const item = monitor.getItem();
-    props.onDropPiece({
-      from: item.square,
-      to: props.square
-    });
+    if (item.square) {
+      props.onDropPiece({
+        from: item.square,
+        to: props.square
+      });
+    } else {
+      props.onDropPieceFromReserve({
+        type: item.type,
+        to: props.square
+      })
+    }
   }
 };
 

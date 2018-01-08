@@ -51,6 +51,7 @@ class ChessGame extends Component {
         <Reserve
           color={topColor}
           isGameOver={this.state.isGameOver}
+          isTurn={this.state.turn === topColor}
           queue={topReserve} />
         <div className="ChessGame__play">
           <Chessboard
@@ -60,6 +61,7 @@ class ChessGame extends Component {
             board={this.state.board}
             isGameOver={this.state.isGameOver}
             onDropPiece={this.onDropPiece}
+            onDropPieceFromReserve={this.onDropPieceFromReserve}
             onDragEnd={this.onDragEnd}
             onSelect={this.onSelect}
             turn={this.state.turn} />
@@ -73,6 +75,7 @@ class ChessGame extends Component {
         <Reserve
           color={bottomColor}
           isGameOver={this.state.isGameOver}
+          isTurn={this.state.turn === bottomColor}
           queue={bottomReserve} />
         {this._renderPromotionDialog()}
       </div>
@@ -100,8 +103,26 @@ class ChessGame extends Component {
     }
 
     const moveResult = this.chess.move({ from, to });
-    this._makeMove(moveResult);
+    // chess.move() returns null if move was invalid
+    if (moveResult) {
+      this._makeMove(moveResult);
+    }
+  }
 
+  onDropPieceFromReserve = ({ type, to }) => {
+    const moveResult = this.chess.put({ type, color: this.state.turn }, to);
+
+    if (moveResult) {
+      // Have to manually advance turn by modifying fen
+      // TODO: Think about forking/wrapping chess.js library and adding this as a function
+      const tokens = this.chess.fen().split(' ');
+      tokens[1] = (tokens[1] === 'w') ? 'b' : 'w';
+      // Passing in 'force' option to force the load of positions that are invalid
+      //  in a normal game of chess, but are valid in bughouse (e.g. 9 pawns)
+      this.chess.load(tokens.join(' '), {force: true});
+
+      this._makeMove(moveResult, type);
+    }
   }
 
   onSelectPromotion = (promotionPiece) => {
@@ -111,18 +132,14 @@ class ChessGame extends Component {
     this._makeMove(moveResult);
   }
 
-  _makeMove(moveResult) {
-    // chess.move() returns null if move was invalid
-    if (!moveResult) {
-      return;
-    }
-
-    this._updateBoard();
+  _makeMove(moveResult, droppedPiece) {
     this.props.onMove({
       fen: this.chess.fen(),
-      captured: moveResult.captured,
-      moveColor: moveResult.color
+      capturedPiece: moveResult.captured,
+      moveColor: this.state.turn,
+      droppedPiece
     });
+    this._updateBoard();
   }
 
   onDragEnd = (square) => {

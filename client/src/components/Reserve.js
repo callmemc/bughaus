@@ -5,6 +5,7 @@ import Piece from './Piece';
 class Reserve extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
+    isTurn: PropTypes.bool,
     queue: PropTypes.string.isRequired
   }
 
@@ -16,6 +17,7 @@ class Reserve extends Component {
             <Piece
               color={this.props.color}
               isGameOver={this.props.isGameOver}
+              isTurn={this.props.isTurn}
               type={piece} />
           </div>
         ))}

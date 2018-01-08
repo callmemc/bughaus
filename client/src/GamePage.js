@@ -36,19 +36,22 @@ class GamePage extends Component {
   }
 
   handleMove = (boardNum, data) => {
-    const {fen, captured, moveColor} = data;
+    const {fen, capturedPiece, droppedPiece, moveColor} = data;
     const newState = {
       [`fen${boardNum}`]: fen
     };
 
-    if (captured) {
+    if (capturedPiece) {
+      // Add piece to partner's reserve
       const capturedColor = moveColor === 'w' ? 'b' : 'w';
       const otherBoardNum = boardNum === 0 ? 1 : 0;
       const reserveKey = `${capturedColor}Reserve${otherBoardNum}`;
-      newState[reserveKey] = this.state[reserveKey] + captured;
+      newState[reserveKey] = this.state[reserveKey] + capturedPiece;
+    } else if (droppedPiece) {
+      // Remove piece from player's reserve
+      const reserveKey = `${moveColor}Reserve${boardNum}`;
+      newState[reserveKey] = this.state[reserveKey].replace(new RegExp(droppedPiece), '');
     }
-
-    // TODO: remove piece when piece is dropped
 
     this.setState(newState);
 
