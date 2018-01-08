@@ -83,3 +83,14 @@
 .Promotion {
   display: flex;
 }
+
+.PlayerBox--active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #feef88;
+}
+
+.PlayerBox, .PlayerBox--active {
+  height: 40px;
+}

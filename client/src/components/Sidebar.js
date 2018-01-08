@@ -46,9 +46,11 @@ class PlayerBox extends Component {
       } else {
         text =  this.props.isUser ? 'Your turn' : 'Waiting for opponent';
       }
-    }
 
-    return <div>{text}</div>;
+      return <div className="PlayerBox--active">{text}</div>;
+    } else {
+      return <div className="PlayerBox" />;
+    }
   }
 }
 
