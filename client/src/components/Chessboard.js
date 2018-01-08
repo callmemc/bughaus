@@ -35,6 +35,7 @@ class Chessboard extends Component {
                 isGameOver={this.props.isGameOver}
                 onDragEnd={this.props.onDragEnd}
                 onDropPiece={this.props.onDropPiece}
+                onDropPieceFromReserve={this.props.onDropPieceFromReserve}
                 onSelect={this.props.onSelect}
                 rankNum={8-rank}
                 pieceType={_.get(piece, 'type')}

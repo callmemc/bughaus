@@ -29,7 +29,7 @@ class Piece extends Component {
   }
 
   handleMouseDown = () => {
-    if (this.props.isTurn && !this.props.isGameOver) {
+    if (this.props.isTurn && !this.props.isGameOver && this.props.square) {
       this.props.onSelect(this.props.square);
     }
   }
@@ -53,7 +53,9 @@ const pieceSource = {
   },
 
   endDrag: (props) => {
-    props.onDragEnd();
+    if (props.onDragEnd) {
+      props.onDragEnd();
+    }
   }
 };
 
