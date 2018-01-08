@@ -11,13 +11,11 @@ class GamePage extends Component {
     super();
     this.state = {};
   }
+
   componentDidMount() {
     // Initialize socket connection when component mounts
     const gameId = this.props.match.params.gameId;
     this.socket = socketClient.initialize(gameId);
-    this.socket.on('updateBoard', this.updateBoardListener);
-
-    // TODO: Remove this in favor of api call
     this.socket.on('updateGame', this.updateGameListener);
   }
 
@@ -33,26 +31,37 @@ class GamePage extends Component {
     );
   }
 
-  updateBoardListener = ({boardNum, board}) => {
-    this.setState({ [`board${boardNum}`]: board });
-  }
-
   updateGameListener = (data) => {
-    this.setState({
-      board0: data[0],
-      board1: data[1]
-    });
+    this.setState(data);
   }
 
   handleMove = (boardNum, data) => {
-    this.socket.emit('move', { boardNum, board: data } );
+    const {fen, captured, moveColor} = data;
+    const newState = {
+      [`fen${boardNum}`]: fen
+    };
+
+    if (captured) {
+      const capturedColor = moveColor === 'w' ? 'b' : 'w';
+      const otherBoardNum = boardNum === 0 ? 1 : 0;
+      const reserveKey = `${capturedColor}Reserve${otherBoardNum}`;
+      newState[reserveKey] = this.state[reserveKey] + captured;
+    }
+
+    // TODO: remove piece when piece is dropped
+
+    this.setState(newState);
+
+    this.socket.emit('move', newState);
   }
 
   _renderChessGame(boardNum) {
     const flipped = boardNum === 0 ? false : true;
     return (
       <ChessGame
-        {...this.state[`board${boardNum}`]}
+        fen={this.state[`fen${boardNum}`]}
+        wReserve={this.state[`wReserve${boardNum}`]}
+        bReserve={this.state[`bReserve${boardNum}`]}
         onMove={data => this.handleMove(boardNum, data)}
         flipped={flipped} />
     );

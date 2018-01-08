@@ -26,14 +26,6 @@ class ChessGame extends Component {
       this.chess = new chessjs.Chess(nextProps.fen);
       this._updateBoard();
     }
-
-    if (nextProps.wReserve !== this.state.wReserve) {
-      this.setState({wReserve: nextProps.wReserve})
-    }
-
-    if (nextProps.bReserve !== this.state.bReserve) {
-      this.setState({bReserve: nextProps.bReserve})
-    }
   }
 
   render() {
@@ -45,19 +37,19 @@ class ChessGame extends Component {
     if (this.state.flipped) {
       bottomColor = 'b';
       topColor = 'w';
-      bottomReserve = this.state.bReserve;
-      topReserve = this.state.wReserve;
+      bottomReserve = this.props.bReserve;
+      topReserve = this.props.wReserve;
     } else {
       bottomColor = 'w';
       topColor = 'b';
-      bottomReserve = this.state.wReserve;
-      topReserve = this.state.bReserve;
+      bottomReserve = this.props.wReserve;
+      topReserve = this.props.bReserve;
     }
 
     return (
       <div className="ChessGame">
         <Reserve
-          color={bottomColor}
+          color={topColor}
           isGameOver={this.state.isGameOver}
           queue={topReserve} />
         <div className="ChessGame__play">
@@ -79,7 +71,7 @@ class ChessGame extends Component {
             turn={this.state.turn} />
         </div>
         <Reserve
-          color={topColor}
+          color={bottomColor}
           isGameOver={this.state.isGameOver}
           queue={bottomReserve} />
         {this._renderPromotionDialog()}
@@ -125,17 +117,11 @@ class ChessGame extends Component {
       return;
     }
 
-    const { captured, color } = moveResult;
-
-    if (captured) {
-      this._updateReserve(captured, color);
-    }
-
     this._updateBoard();
     this.props.onMove({
       fen: this.chess.fen(),
-      wReserve: this.state.wReserve,
-      bReserve: this.state.bReserve
+      captured: moveResult.captured,
+      moveColor: moveResult.color
     });
   }
 
@@ -170,6 +156,7 @@ class ChessGame extends Component {
   _updateBoard() {
     this.setState({
       board: this._getBoard({flipped: this.state.flipped}),
+      fen: this.chess.fen(),
       isGameOver: this.chess.in_checkmate(), // turn is in checkmate
       turn: this.chess.turn()
     });
@@ -183,12 +170,6 @@ class ChessGame extends Component {
     }
 
     return board;
-  }
-
-  _updateReserve(capturedPiece, color) {
-    const reserveName = color === 'w' ? 'wReserve' : 'bReserve';
-    const newReserve = this.state[reserveName] + capturedPiece;
-    this.setState({ [reserveName]: newReserve });
   }
 
   _renderPromotionDialog() {
