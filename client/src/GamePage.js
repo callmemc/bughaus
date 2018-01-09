@@ -41,9 +41,10 @@ class GamePage extends Component {
   }
 
   handleMove = (boardNum, data) => {
-    const {fen, capturedPiece, droppedPiece, moveColor, isCheckmate} = data;
+    const {fen, capturedPiece, droppedPiece, moveColor, isCheckmate, promotedSquares} = data;
     const newState = {
-      [`fen${boardNum}`]: fen
+      [`fen${boardNum}`]: fen,
+      [`promotedSquares${boardNum}`]: promotedSquares
     };
 
     if (capturedPiece) {
@@ -76,9 +77,10 @@ class GamePage extends Component {
         fen={this.state[`fen${boardNum}`]}
         wReserve={this.state[`wReserve${boardNum}`]}
         bReserve={this.state[`bReserve${boardNum}`]}
+        promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
         onMove={data => this.handleMove(boardNum, data)}
         isGameOver={this.state.winner}
-        flipped={flipped} />
+        initialFlipped={flipped} />
     );
   }
 }
