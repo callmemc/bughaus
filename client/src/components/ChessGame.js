@@ -50,7 +50,7 @@ class ChessGame extends Component {
       <div className="ChessGame">
         <Reserve
           color={topColor}
-          isGameOver={this.state.isGameOver}
+          isGameOver={this.props.isGameOver}
           isTurn={this.state.turn === topColor}
           queue={topReserve} />
         <div className="ChessGame__play">
@@ -60,7 +60,7 @@ class ChessGame extends Component {
             moves={this.state.moves}
             board={this.state.board}
             inCheck={this.state.inCheck}
-            isGameOver={this.state.isGameOver}
+            isGameOver={this.props.isGameOver}
             onDropPiece={this.onDropPiece}
             onDropPieceFromReserve={this.onDropPieceFromReserve}
             onDragEnd={this.onDragEnd}
@@ -69,13 +69,13 @@ class ChessGame extends Component {
           <Sidebar
             bottomColor={bottomColor}
             topColor={topColor}
-            isGameOver={this.state.isGameOver}
+            inCheckmate={this.state.inCheckmate}
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
         <Reserve
           color={bottomColor}
-          isGameOver={this.state.isGameOver}
+          isGameOver={this.props.isGameOver}
           isTurn={this.state.turn === bottomColor}
           queue={bottomReserve} />
         {this._renderPromotionDialog()}
@@ -138,7 +138,8 @@ class ChessGame extends Component {
       fen: this.chess.fen(),
       capturedPiece: moveResult.captured,
       moveColor: this.state.turn,
-      droppedPiece
+      droppedPiece,
+      isCheckmate: this.chess.in_checkmate()
     });
     this._updateBoard();
   }
@@ -175,7 +176,10 @@ class ChessGame extends Component {
     this.setState({
       board: this._getBoard({flipped: this.state.flipped}),
       fen: this.chess.fen(),
-      isGameOver: this.chess.in_checkmate(), // turn is in checkmate
+      // TODO: Separate isGameOver, which is determined by both boards, and
+      // isCheckmate, which is per board
+      // Store game over as flag
+      inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
       inCheck: this.chess.in_check(),
       turn: this.chess.turn()
     });

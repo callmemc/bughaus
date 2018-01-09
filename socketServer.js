@@ -29,7 +29,7 @@ function getGame(gameId) {
     bReserve0: '',
     fen1: INITIAL_FEN,
     wReserve1: '',
-    bReserve1: '',
+    bReserve1: ''
   };
 
   // TODO: Initialize game on an api create call instead

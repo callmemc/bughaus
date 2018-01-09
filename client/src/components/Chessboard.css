@@ -1,6 +1,15 @@
 .GamePage {
+}
+
+.Boards {
   display: flex;
   justify-content: center;
+}
+
+.GameStatus {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 .ChessGame {
