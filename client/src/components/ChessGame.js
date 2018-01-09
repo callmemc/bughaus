@@ -176,9 +176,6 @@ class ChessGame extends Component {
     this.setState({
       board: this._getBoard({flipped: this.state.flipped}),
       fen: this.chess.fen(),
-      // TODO: Separate isGameOver, which is determined by both boards, and
-      // isCheckmate, which is per board
-      // Store game over as flag
       inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
       inCheck: this.chess.in_check(),
       turn: this.chess.turn()

@@ -90,7 +90,7 @@ class GameStatus extends Component {
 
   render() {
     const { winner } = this.props;
-    if (!this.props.winner) {
+    if (!winner) {
       return <div />;
     } else {
       return (
