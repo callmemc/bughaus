@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
+import { getWinningTeam } from './utils';
 
 class GamePage extends Component {
   constructor() {
@@ -22,10 +24,13 @@ class GamePage extends Component {
   render() {
     return (
       <div className="GamePage">
-        {this._renderChessGame(0)}
-        <div className="PartnerGame">
-          {this._renderChessGame(1)}
+        <div className="Boards">
+          {this._renderChessGame(0)}
+          <div className="PartnerGame">
+            {this._renderChessGame(1)}
+          </div>
         </div>
+        <GameStatus winner={this.state.winner} />
         <PieceDragLayer />
       </div>
     );
@@ -36,7 +41,7 @@ class GamePage extends Component {
   }
 
   handleMove = (boardNum, data) => {
-    const {fen, capturedPiece, droppedPiece, moveColor} = data;
+    const {fen, capturedPiece, droppedPiece, moveColor, isCheckmate} = data;
     const newState = {
       [`fen${boardNum}`]: fen
     };
@@ -53,6 +58,12 @@ class GamePage extends Component {
       newState[reserveKey] = this.state[reserveKey].replace(new RegExp(droppedPiece), '');
     }
 
+    // Note: Winner is stored, rather than calculated from fen, b/c players can lose for
+    //  other reasons (e.g. time running out)
+    if (isCheckmate) {
+      newState.winner = { color: moveColor, boardNum };
+    }
+
     this.setState(newState);
 
     this.socket.emit('move', newState);
@@ -66,8 +77,28 @@ class GamePage extends Component {
         wReserve={this.state[`wReserve${boardNum}`]}
         bReserve={this.state[`bReserve${boardNum}`]}
         onMove={data => this.handleMove(boardNum, data)}
+        isGameOver={this.state.winner}
         flipped={flipped} />
     );
+  }
+}
+
+class GameStatus extends Component {
+  static propTypes = {
+    winner: PropTypes.object
+  }
+
+  render() {
+    const { winner } = this.props;
+    if (!winner) {
+      return <div />;
+    } else {
+      return (
+        <div className="GameStatus">
+          Winner: Team {getWinningTeam(winner)}!
+        </div>
+      )
+    }
   }
 }
 

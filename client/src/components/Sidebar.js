@@ -5,7 +5,7 @@ class Sidebar extends Component {
   static propTypes = {
     bottomColor: PropTypes.oneOf(['w', 'b']),
     topColor: PropTypes.oneOf(['w', 'b']),
-    isGameOver: PropTypes.bool,
+    inCheckmate: PropTypes.bool,
     turn: PropTypes.string
   }
 
@@ -15,14 +15,14 @@ class Sidebar extends Component {
       <div className="Sidebar">
         <PlayerBox
           color={this.props.topColor}
-          isGameOver={this.props.isGameOver}
+          inCheckmate={this.props.inCheckmate}
           turn={turn} />
         <button onClick={this.props.onFlip}>
           Flip
         </button>
         <PlayerBox
           color={this.props.bottomColor}
-          isGameOver={this.props.isGameOver}
+          inCheckmate={this.props.inCheckmate}
           turn={turn}
           isUser />
       </div>
@@ -41,7 +41,7 @@ class PlayerBox extends Component {
     let text;
 
     if (this.props.turn === this.props.color) {
-      if (this.props.isGameOver) {
+      if (this.props.inCheckmate) {
         text = 'Checkmated';
       } else {
         text =  this.props.isUser ? 'Your turn' : 'Waiting for opponent';
