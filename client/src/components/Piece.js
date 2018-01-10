@@ -7,7 +7,7 @@ import PieceImage from './PieceImage';
 class Piece extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
-    isTurn: PropTypes.bool,
+    isDraggable: PropTypes.bool,
     type: PropTypes.string.isRequired
   }
 
@@ -22,16 +22,10 @@ class Piece extends Component {
     const opacity = isDragging ? 0.5 : 1;
 
     return connectDragSource(
-      <div className="Piece" style={{opacity}} onMouseDown={this.handleMouseDown}>
+      <div className="Piece" style={{opacity}}>
         <PieceImage color={color} type={type} />
       </div>
     );
-  }
-
-  handleMouseDown = () => {
-    if (this.props.isTurn && !this.props.isGameOver && this.props.square) {
-      this.props.onSelect(this.props.square);
-    }
   }
 }
 
@@ -49,13 +43,7 @@ const pieceSource = {
   canDrag: (props, monitor) => {
     // TODO: Figure out way to not have to pass down props many layers
     // Redux + wrapper component?
-    return !props.isGameOver && props.isTurn;
-  },
-
-  endDrag: (props) => {
-    if (props.onDragEnd) {
-      props.onDragEnd();
-    }
+    return props.isDraggable;
   }
 };
 

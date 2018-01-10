@@ -4,10 +4,18 @@ import _ from 'lodash';
 
 import Square from './Square';
 import './Chessboard.css';
+import { isMove } from '../utils';
 
 class Chessboard extends Component {
   static propTypes = {
-    flipped: PropTypes.bool
+    board: PropTypes.array,
+    flipped: PropTypes.bool,
+    isGameOver: PropTypes.bool,
+    moves: PropTypes.array,
+
+    onDropPiece: PropTypes.func.isRequired,
+    onDropPieceFromReserve: PropTypes.func.isRequired,
+    onSelectSquare: PropTypes.func.isRequired
   }
 
   render() {
@@ -28,24 +36,21 @@ class Chessboard extends Component {
                 const square = String.fromCharCode(96 + fileNum) + rankNum;
                 const squareColor = (fileNum + rankNum) % 2 === 0 ?
                   'dark' : 'light';
-                const isMove = !!(moves && moves.find(move => move.to === square));
+
                 return <Square
                   key={fileIndex}
-                  fileNum={fileIndex+1}
+                  hasValidPiece={this.props.turn === _.get(piece, 'color')}
                   isActive={square === this.props.activeSquare}
-                  isMove={isMove}
+                  isValidSquare={isMove(square, moves)}
                   inCheck={this.props.inCheck}
                   isGameOver={this.props.isGameOver}
-                  onDragEnd={this.props.onDragEnd}
                   onDropPiece={this.props.onDropPiece}
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
-                  onSelect={this.props.onSelect}
-                  rankNum={8-rank}
+                  onSelect={this.props.onSelectSquare}
                   pieceType={_.get(piece, 'type')}
                   pieceColor={_.get(piece, 'color')}
                   square={square}
-                  squareColor={squareColor}
-                  isTurn={this.props.turn === _.get(piece, 'color')} />
+                  squareColor={squareColor} />
               })}
             </div>
           )}

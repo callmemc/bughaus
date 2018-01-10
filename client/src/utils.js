@@ -13,3 +13,7 @@ export function getWinningTeam({color, boardNum}) {
     return 2;
   }
 }
+
+export function isMove(square, moves) {
+  return !!(moves && moves.find(move => move.to === square));
+}

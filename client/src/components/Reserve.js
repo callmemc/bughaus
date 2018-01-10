@@ -16,8 +16,7 @@ class Reserve extends Component {
           <div className="Reserve__piece" key={i}>
             <Piece
               color={this.props.color}
-              isGameOver={this.props.isGameOver}
-              isTurn={this.props.isTurn}
+              isDraggable={!this.props.isGameOver && this.props.isTurn}
               type={piece} />
           </div>
         ))}

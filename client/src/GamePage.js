@@ -79,7 +79,7 @@ class GamePage extends Component {
         bReserve={this.state[`bReserve${boardNum}`]}
         promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
         onMove={data => this.handleMove(boardNum, data)}
-        isGameOver={this.state.winner}
+        isGameOver={!!this.state.winner}
         initialFlipped={flipped} />
     );
   }

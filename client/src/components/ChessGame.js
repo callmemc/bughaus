@@ -6,6 +6,7 @@ import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
+import { isMove } from '../utils';
 
 class ChessGame extends Component {
   static propTypes = {
@@ -98,8 +99,7 @@ class ChessGame extends Component {
             isGameOver={this.props.isGameOver}
             onDropPiece={this.onDropPiece}
             onDropPieceFromReserve={this.onDropPieceFromReserve}
-            onDragEnd={this.onDragEnd}
-            onSelect={this.onSelect}
+            onSelectSquare={this.onSelectSquare}
             turn={this.state.turn} />
           <Sidebar
             bottomColor={bottomColor}
@@ -200,24 +200,23 @@ class ChessGame extends Component {
     this._updateBoard();
   }
 
-  onDragEnd = (square) => {
-    this.setState({
-      activeSquare: undefined,
-      moves: undefined
-    });
-  }
+  onSelectSquare = (square) => {
+    const { activeSquare, moves } = this.state;
+    if (activeSquare && isMove(square, moves)) {
+      this.onDropPiece({from: activeSquare, to: square});
+    } else {
+      this.setState({
+        activeSquare: square,
+        moves: this.chess.moves({ verbose: true, square })
+      });
+    }
 
-  onSelect = (square) => {
+    // TODO: Allow deselection of piece
     // if (this.state.activeSquare === square) {
     //   this.setState({
     //     activeSquare: undefined,
     //     moves: undefined
     //   });
-    // } else {
-      this.setState({
-        activeSquare: square,
-        moves: this.chess.moves({ verbose: true, square })
-      });
     // }
   }
 
@@ -234,7 +233,10 @@ class ChessGame extends Component {
       fen: this.chess.fen(),
       inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
       inCheck: this.chess.in_check(),
-      turn: this.chess.turn()
+      turn: this.chess.turn(),
+
+      activeSquare: undefined,
+      moves: undefined
     });
   }
 
