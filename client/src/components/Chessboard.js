@@ -11,6 +11,8 @@ class Chessboard extends Component {
     board: PropTypes.array,
     flipped: PropTypes.bool,
     isGameOver: PropTypes.bool,
+    prevFromSquare: PropTypes.string,
+    prevToSquare: PropTypes.string,
     moves: PropTypes.array,
 
     onDropPiece: PropTypes.func.isRequired,
@@ -36,12 +38,15 @@ class Chessboard extends Component {
                 const square = String.fromCharCode(96 + fileNum) + rankNum;
                 const squareColor = (fileNum + rankNum) % 2 === 0 ?
                   'dark' : 'light';
+                const isPrevMove = square === this.props.prevFromSquare ||
+                  square === this.props.prevToSquare;
 
                 return <Square
                   key={fileIndex}
                   hasValidPiece={this.props.turn === _.get(piece, 'color')}
                   isActive={square === this.props.activeSquare}
-                  isValidSquare={isMove(square, moves)}
+                  isPrevMove={isPrevMove}
+                  isValidMove={isMove(square, moves)}
                   inCheck={this.props.inCheck}
                   isGameOver={this.props.isGameOver}
                   onDropPiece={this.props.onDropPiece}

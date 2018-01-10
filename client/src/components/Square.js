@@ -7,7 +7,8 @@ import classNames from 'classnames';
 class Square extends Component {
   static propTypes = {
     hasValidPiece: PropTypes.bool,
-    isValidSquare: PropTypes.bool,
+    isPrevMove: PropTypes.bool,
+    isValidMove: PropTypes.bool,
     isActive: PropTypes.bool,
     inCheck: PropTypes.bool,
     isGameOver: PropTypes.bool
@@ -24,7 +25,8 @@ class Square extends Component {
         {
           'Chessboard-square--checked': isCheckedKing,
           'Chessboard-square--active': this.props.isActive,
-          'Chessboard-square--move': this.props.isValidSquare })}
+          'Chessboard-square--previous': this.props.isPrevMove,
+          'Chessboard-square--valid': this.props.isValidMove })}
         onMouseDown={this.handleMouseDown} >
         {this.getPieceComponent()}
       </div>
@@ -32,7 +34,7 @@ class Square extends Component {
   }
 
   handleMouseDown = () => {
-    if (!this.props.isGameOver && (this.props.hasValidPiece || this.props.isValidSquare)) {
+    if (!this.props.isGameOver && (this.props.hasValidPiece || this.props.isValidMove)) {
       this.props.onSelect(this.props.square);
     }
   }

@@ -62,7 +62,15 @@
   background-color: green;
 }
 
-.Chessboard-square--move {
+.Chessboard-square--previous.Chessboard-square--light {
+  background-color: #feef88;
+}
+
+.Chessboard-square--previous.Chessboard-square--dark {
+  background-color: #c1a535;
+}
+
+.Chessboard-square--valid {
   border: 3px solid green;
 }
 

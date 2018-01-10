@@ -16,6 +16,7 @@ class ChessGame extends Component {
     onMove: PropTypes.func.isRequired,
 
     fen: PropTypes.string,
+    history: PropTypes.object,
     promotedSquares: PropTypes.object,
     initialFlipped: PropTypes.bool
   }
@@ -69,6 +70,8 @@ class ChessGame extends Component {
       return <div />;
     }
 
+    const { history } = this.props;
+
     let bottomColor, topColor, bottomReserve, topReserve;
     if (this.state.flipped) {
       bottomColor = 'b';
@@ -97,6 +100,8 @@ class ChessGame extends Component {
             board={this.state.board}
             inCheck={this.state.inCheck}
             isGameOver={this.props.isGameOver}
+            prevFromSquare={_.get(history, 'prevFromSquare')}
+            prevToSquare={_.get(history, 'prevToSquare')}
             onDropPiece={this.onDropPiece}
             onDropPieceFromReserve={this.onDropPieceFromReserve}
             onSelectSquare={this.onSelectSquare}
@@ -157,7 +162,7 @@ class ChessGame extends Component {
       //  in a normal game of chess, but are valid in bughouse (e.g. 9 pawns)
       this.chess.load(tokens.join(' '), {force: true});
 
-      this._makeMove({ droppedPiece: type });
+      this._makeMove({ droppedPiece: type, to });
     }
   }
 
@@ -166,7 +171,7 @@ class ChessGame extends Component {
     const moveResult = this.chess.move({ from, to, promotion: promotionPiece });
 
     this.setState({ activePromotion: undefined });
-    this._makeMove({ capturedPiece: moveResult.captured, to, isPromotion: true });
+    this._makeMove({ capturedPiece: moveResult.captured, from, to, isPromotion: true });
   }
 
   _makeMove({ capturedPiece, droppedPiece, from, to, isPromotion }) {
@@ -194,7 +199,11 @@ class ChessGame extends Component {
       fen: this.chess.fen(),
       isCheckmate: this.chess.in_checkmate(),
       moveColor: this.state.turn,
-      promotedSquares: this.state.promotedSquares
+      promotedSquares: this.state.promotedSquares,
+      history: {
+        prevFromSquare: from,
+        prevToSquare: to
+      }
     });
 
     this._updateBoard();
