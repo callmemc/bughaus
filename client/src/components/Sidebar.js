@@ -17,7 +17,7 @@ class Sidebar extends Component {
           color={this.props.topColor}
           inCheckmate={this.props.inCheckmate}
           turn={turn} />
-        <button onClick={this.props.onFlip}>
+        <button className="Sidebar__flip-button" onClick={this.props.onFlip}>
           Flip
         </button>
         <PlayerBox
