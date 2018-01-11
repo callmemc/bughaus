@@ -6,7 +6,7 @@ import { withRouter } from 'react-router-dom';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
-import { getWinningTeam } from './utils';
+import { getWinningTeam, removeFromReserve } from './utils';
 
 class GamePage extends Component {
   constructor() {
@@ -42,7 +42,7 @@ class GamePage extends Component {
 
   handleMove = (boardNum, data) => {
     const { fen, promotedSquares, history,
-      capturedPiece, droppedPiece, moveColor, isCheckmate } = data;
+      capturedPiece, droppedPieceIndex, moveColor, isCheckmate } = data;
     const newState = {
       [`fen${boardNum}`]: fen,
       [`promotedSquares${boardNum}`]: promotedSquares,
@@ -55,10 +55,10 @@ class GamePage extends Component {
       const otherBoardNum = boardNum === 0 ? 1 : 0;
       const reserveKey = `${capturedColor}Reserve${otherBoardNum}`;
       newState[reserveKey] = this.state[reserveKey] + capturedPiece;
-    } else if (droppedPiece) {
+    } else if (droppedPieceIndex !== undefined) {
       // Remove piece from player's reserve
       const reserveKey = `${moveColor}Reserve${boardNum}`;
-      newState[reserveKey] = this.state[reserveKey].replace(new RegExp(droppedPiece), '');
+      newState[reserveKey] = removeFromReserve(this.state[reserveKey], droppedPieceIndex);
     }
 
     // Note: Winner is stored, rather than calculated from fen, b/c players can lose for

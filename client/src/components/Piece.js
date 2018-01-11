@@ -36,7 +36,8 @@ const pieceSource = {
     return {
       color: props.color,
       type: props.type,
-      square: props.square
+      square: props.square,
+      index: props.index,
     };
   },
 

@@ -17,3 +17,7 @@ export function getWinningTeam({color, boardNum}) {
 export function isMove(square, moves) {
   return !!(moves && moves.find(move => move.to === square));
 }
+
+export function removeFromReserve(reserve, index) {
+  return reserve.substring(0, index) + reserve.substring(index + 1);
+}

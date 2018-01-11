@@ -35,13 +35,13 @@ class ChessGame extends Component {
       /* Describe board, calculated based off this.chess object */
       inCheck: false,
       inCheckmate: false,
-      moves: undefined,     // VALID
-      turn: undefined,
+      moves: undefined,       // Array of valid moves
+      turn: undefined,        // 'w' or 'b'
 
       /* Describe board state */
       activePromotion: undefined,     // Object holding promotion info before user has selected piece
-      activeSquare: undefined,        // Square selected by the user
-      flipped: !!this.props.initialFlipped   // true if board is oriented so that white is at the bottom
+      activePiece: undefined,         // Piece selected by the user
+      flipped: !!this.props.initialFlipped   // true if board is oriented w/ white at the bottom
     };
   }
 
@@ -71,6 +71,7 @@ class ChessGame extends Component {
     }
 
     const { history } = this.props;
+    const { activePiece } = this.state;
 
     let bottomColor, topColor, bottomReserve, topReserve;
     if (this.state.flipped) {
@@ -85,16 +86,31 @@ class ChessGame extends Component {
       topReserve = this.props.bReserve;
     }
 
+    let activeSquare, activeTopIndex, activeBottomIndex;
+    if (activePiece) {
+      if (activePiece.type === 'board') {
+        activeSquare = activePiece.square;
+      } else {
+        if (activePiece.color === topColor) {
+          activeTopIndex = activePiece.index;
+        } else {
+          activeBottomIndex = activePiece.index;
+        }
+      }
+    }
+
     return (
       <div className="ChessGame">
         <Reserve
+          activeIndex={activeTopIndex}
           color={topColor}
           isGameOver={this.props.isGameOver}
           isTurn={this.state.turn === topColor}
+          onSelectPiece={this.onSelectPieceFromReserve}
           queue={topReserve} />
         <div className="ChessGame__play">
           <Chessboard
-            activeSquare={this.state.activeSquare}
+            activeSquare={activeSquare}
             flipped={this.state.flipped}
             moves={this.state.moves}
             board={this.state.board}
@@ -114,9 +130,11 @@ class ChessGame extends Component {
             turn={this.state.turn} />
         </div>
         <Reserve
+          activeIndex={activeBottomIndex}
           color={bottomColor}
           isGameOver={this.props.isGameOver}
           isTurn={this.state.turn === bottomColor}
+          onSelectPiece={this.onSelectPieceFromReserve}
           queue={bottomReserve} />
         {this._renderPromotionDialog()}
       </div>
@@ -150,7 +168,9 @@ class ChessGame extends Component {
     }
   }
 
-  onDropPieceFromReserve = ({ type, to }) => {
+  onDropPieceFromReserve = ({ index, type, to }) => {
+    // TODO: disallow dropping pawns on back row
+
     const moveResult = this.chess.put({ type, color: this.state.turn }, to);
 
     if (moveResult) {
@@ -162,8 +182,15 @@ class ChessGame extends Component {
       //  in a normal game of chess, but are valid in bughouse (e.g. 9 pawns)
       this.chess.load(tokens.join(' '), {force: true});
 
-      this._makeMove({ droppedPiece: type, to });
+      this._makeMove({ droppedPieceIndex: index, to });
     }
+  }
+
+  onSelectPieceFromReserve = (index, color, piece) => {
+    this.setState({
+      activePiece: { type: 'reserve', index, color, piece },
+      moves: undefined
+    });
   }
 
   onSelectPromotion = (promotionPiece) => {
@@ -174,7 +201,39 @@ class ChessGame extends Component {
     this._makeMove({ capturedPiece: moveResult.captured, from, to, isPromotion: true });
   }
 
-  _makeMove({ capturedPiece, droppedPiece, from, to, isPromotion }) {
+  onSelectSquare = (square, existingPiece) => {
+    const { activePiece, moves } = this.state;
+    const activePieceType = _.get(activePiece, 'type');
+    // If a valid board move is detected, make the move
+    if (activePieceType === 'board' && isMove(square, moves)) {
+      this.onDropPiece({from: activePiece.square, to: square});
+      return;
+    // Else if a valid drop from reserve move is detected, make the move
+    } else if (activePieceType === 'reserve' && !existingPiece) {
+      this.onDropPieceFromReserve({
+        index: activePiece.index,
+        type: activePiece.piece,
+        to: square
+      });
+      return;
+    // Else if a piece is on the square, select it as the new active piece
+    } else if (existingPiece) {
+      this.setState({
+        activePiece: { type: 'board', square },
+        moves: this.chess.moves({ verbose: true, square })
+      });
+    }
+
+    // TODO: Allow deselection of piece
+    // if (this.state.activePiece === square) {
+    //   this.setState({
+    //     activePiece: undefined,
+    //     moves: undefined
+    //   });
+    // }
+  }
+
+  _makeMove({ capturedPiece, droppedPieceIndex, from, to, isPromotion }) {
     // If move captures a promoted piece, turn it back to pawn
     if (capturedPiece && this.state.promotedSquares[to]) {
       delete this.state.promotedSquares[to];
@@ -195,7 +254,7 @@ class ChessGame extends Component {
 
     this.props.onMove({
       capturedPiece,
-      droppedPiece,
+      droppedPieceIndex,
       fen: this.chess.fen(),
       isCheckmate: this.chess.in_checkmate(),
       moveColor: this.state.turn,
@@ -209,33 +268,6 @@ class ChessGame extends Component {
     this._updateBoard();
   }
 
-  onSelectSquare = (square) => {
-    const { activeSquare, moves } = this.state;
-    if (activeSquare && isMove(square, moves)) {
-      this.onDropPiece({from: activeSquare, to: square});
-    } else {
-      this.setState({
-        activeSquare: square,
-        moves: this.chess.moves({ verbose: true, square })
-      });
-    }
-
-    // TODO: Allow deselection of piece
-    // if (this.state.activeSquare === square) {
-    //   this.setState({
-    //     activeSquare: undefined,
-    //     moves: undefined
-    //   });
-    // }
-  }
-
-  onFlip = () => {
-    this.setState({
-      flipped: !this.state.flipped,
-      board: this._getBoard({flipped: !this.state.flipped})
-    });
-  }
-
   _updateBoard() {
     this.setState({
       board: this._getBoard({flipped: this.state.flipped}),
@@ -244,7 +276,7 @@ class ChessGame extends Component {
       inCheck: this.chess.in_check(),
       turn: this.chess.turn(),
 
-      activeSquare: undefined,
+      activePiece: undefined,
       moves: undefined
     });
   }
@@ -268,6 +300,13 @@ class ChessGame extends Component {
           pieces={this.state.activePromotion.pieces} />
       );
     }
+  }
+
+  onFlip = () => {
+    this.setState({
+      flipped: !this.state.flipped,
+      board: this._getBoard({flipped: !this.state.flipped})
+    });
   }
 }
 

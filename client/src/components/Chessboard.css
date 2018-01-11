@@ -30,6 +30,10 @@
   height: 48px;
 }
 
+.Reserve__piece--active {
+  background-color: #25ab25;
+}
+
 .Chessboard {
   display: flex;
 }
@@ -59,7 +63,7 @@
 }
 
 .Chessboard-square--active {
-  background-color: green;
+  background-color: #25ab25;
 }
 
 .Chessboard-square--previous.Chessboard-square--light {
@@ -71,7 +75,7 @@
 }
 
 .Chessboard-square--valid {
-  border: 3px solid green;
+  border: 3px solid #25ab25;
 }
 
 .Piece {

@@ -34,8 +34,11 @@ class Square extends Component {
   }
 
   handleMouseDown = () => {
-    if (!this.props.isGameOver && (this.props.hasValidPiece || this.props.isValidMove)) {
-      this.props.onSelect(this.props.square);
+    // TODO: clean up logic for treating drop from piece reserve moves differently
+    //  from board moves
+    if (!this.props.isGameOver &&
+      (this.props.hasValidPiece || this.props.isValidMove || !this.props.pieceType)) {
+      this.props.onSelect(this.props.square, this.props.pieceType);
     }
   }
 
@@ -68,6 +71,7 @@ const squareTarget = {
       });
     } else {
       props.onDropPieceFromReserve({
+        index: item.index,
         type: item.type,
         to: props.square
       })
