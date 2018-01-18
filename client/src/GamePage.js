@@ -3,15 +3,26 @@ import PropTypes from 'prop-types';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
+import _ from 'lodash';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
-import { getWinningTeam, removeFromReserve } from './utils';
+import UserSelectionDialog from './components/UserSelectionDialog';
+import {
+  getTeam,
+  getOpposingBoardNum,
+  getOpposingColor,
+  removeFromReserve
+} from './utils';
 
 class GamePage extends Component {
   constructor() {
     super();
-    this.state = {};
+
+    this.state = {
+      isFlipped0: false,
+      isFlipped1: true
+    };
   }
 
   componentDidMount() {
@@ -22,16 +33,20 @@ class GamePage extends Component {
   }
 
   render() {
+    const boardNum = _.get(this.state.currentUser, 'boardNum') || 0;
+    const opposingBoardNum = getOpposingBoardNum(boardNum);
+
     return (
       <div className="GamePage">
         <div className="Boards">
-          {this._renderChessGame(0)}
+          {this._renderChessGame(boardNum)}
           <div className="PartnerGame">
-            {this._renderChessGame(1)}
+            {this._renderChessGame(opposingBoardNum)}
           </div>
         </div>
         <GameStatus winner={this.state.winner} />
         <PieceDragLayer />
+        {this._renderUserSelectionDialog()}
       </div>
     );
   }
@@ -51,8 +66,8 @@ class GamePage extends Component {
 
     if (capturedPiece) {
       // Add piece to partner's reserve
-      const capturedColor = moveColor === 'w' ? 'b' : 'w';
-      const otherBoardNum = boardNum === 0 ? 1 : 0;
+      const capturedColor = getOpposingColor(moveColor);
+      const otherBoardNum = getOpposingBoardNum(boardNum);
       const reserveKey = `${capturedColor}Reserve${otherBoardNum}`;
       newState[reserveKey] = this.state[reserveKey] + capturedPiece;
     } else if (droppedPieceIndex !== undefined) {
@@ -68,22 +83,68 @@ class GamePage extends Component {
     }
 
     this.setState(newState);
-
     this.socket.emit('move', newState);
   }
 
+  handleSelectUser = ({ color, boardNum, username }) => {
+    const userKey = `${color}UserId${boardNum}`;
+
+    // TODO: Store current user in session. This is a TEMPORARY hack
+    const newState = { [userKey]: username, currentUser: { color, boardNum, username } };
+    this.setState(newState);
+    this.socket.emit('move', newState);
+
+    const flipBoard0 = (color === 'b' && boardNum === 0) ||
+      (color === 'w' && boardNum === 1);
+
+    this.setState({
+      isFlipped0: flipBoard0,
+      isFlipped1: !flipBoard0
+    });
+  }
+
+  handleFlip = (boardNum) => {
+    const key = `isFlipped${boardNum}`;
+    this.setState({
+      [key]: !this.state[key]
+    });
+  }
+
   _renderChessGame(boardNum) {
-    const flipped = boardNum === 0 ? false : true;
     return (
-      <ChessGame
-        fen={this.state[`fen${boardNum}`]}
-        history={this.state[`history${boardNum}`]}
-        wReserve={this.state[`wReserve${boardNum}`]}
-        bReserve={this.state[`bReserve${boardNum}`]}
-        promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
-        onMove={data => this.handleMove(boardNum, data)}
-        isGameOver={!!this.state.winner}
-        initialFlipped={flipped} />
+      <div>
+        <ChessGame
+          wUserId={this.state[`wUserId${boardNum}`]}
+          bUserId={this.state[`bUserId${boardNum}`]}
+          fen={this.state[`fen${boardNum}`]}
+          history={this.state[`history${boardNum}`]}
+          wReserve={this.state[`wReserve${boardNum}`]}
+          bReserve={this.state[`bReserve${boardNum}`]}
+          promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
+          isFlipped={this.state[`isFlipped${boardNum}`]}
+          onFlip={() => this.handleFlip(boardNum)}
+          onMove={data => this.handleMove(boardNum, data)}
+          isGameOver={!!this.state.winner} />
+      </div>
+    );
+  }
+
+  _renderUserSelectionDialog() {
+    const { wUserId0, bUserId0, wUserId1, bUserId1 } = this.state;
+
+    // TODO: and type is multiplayer
+    if (wUserId0 && bUserId0 && wUserId1 && bUserId1) {
+      return null;
+    }
+
+    return (
+      <UserSelectionDialog
+        currentUser={this.state.currentUser}
+        wUserId0={wUserId0}
+        bUserId0={bUserId0}
+        wUserId1={wUserId1}
+        bUserId1={bUserId1}
+        onSelectUser={this.handleSelectUser} />
     );
   }
 }
@@ -100,7 +161,7 @@ class GameStatus extends Component {
     } else {
       return (
         <div className="GameStatus">
-          Winner: Team {getWinningTeam(winner)}!
+          Winner: Team {getTeam(winner)}!
         </div>
       )
     }

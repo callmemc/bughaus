@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Link } from 'react-router-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import './App.css';
 import HomePage from './HomePage';
@@ -10,7 +10,7 @@ class PrimaryLayout extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <h1 className="App-title">Welcome to Bughaus</h1>
+          <h1 className="App-title"><Link to="/">Welcome to Bughaus</Link></h1>
         </header>
         <main>
           <Route path ="/" exact component={HomePage}/>

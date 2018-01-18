@@ -10,6 +10,8 @@ import { isMove } from '../utils';
 
 class ChessGame extends Component {
   static propTypes = {
+    wUserId: PropTypes.string,
+    bUserId: PropTypes.string,
     wReserve: PropTypes.string,
     bReserve: PropTypes.string,
     isGameOver: PropTypes.bool,
@@ -18,7 +20,7 @@ class ChessGame extends Component {
     fen: PropTypes.string,
     history: PropTypes.object,
     promotedSquares: PropTypes.object,
-    initialFlipped: PropTypes.bool
+    isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
   }
 
   constructor(props) {
@@ -40,8 +42,7 @@ class ChessGame extends Component {
 
       /* Describe board state */
       activePromotion: undefined,     // Object holding promotion info before user has selected piece
-      activePiece: undefined,         // Piece selected by the user
-      flipped: !!this.props.initialFlipped   // true if board is oriented w/ white at the bottom
+      activePiece: undefined         // Piece selected by the user
     };
   }
 
@@ -63,6 +64,14 @@ class ChessGame extends Component {
     if (nextProps.promotedSquares !== this.state.promotedSquares) {
       this.setState({ promotedSquares: nextProps.promotedSquares});
     }
+
+    // NOTE: This is confusing.
+    // TODO: Need to think of a better way to do this. Probably involves Redux
+    if (nextProps.isFlipped !== this.props.isFlipped) {
+      this.setState({
+        board: this._getBoard({ flipped: nextProps.isFlipped })
+      });
+    }
   }
 
   render() {
@@ -73,17 +82,22 @@ class ChessGame extends Component {
     const { history } = this.props;
     const { activePiece } = this.state;
 
-    let bottomColor, topColor, bottomReserve, topReserve;
-    if (this.state.flipped) {
+    let bottomColor, topColor, bottomReserve, topReserve, bottomId, topId;
+
+    if (this.props.isFlipped) {
       bottomColor = 'b';
       topColor = 'w';
       bottomReserve = this.props.bReserve;
       topReserve = this.props.wReserve;
+      bottomId = this.props.bUserId;
+      topId = this.props.wUserId;
     } else {
       bottomColor = 'w';
       topColor = 'b';
       bottomReserve = this.props.wReserve;
       topReserve = this.props.bReserve;
+      bottomId = this.props.wUserId;
+      topId = this.props.bUserId;
     }
 
     let activeSquare, activeTopIndex, activeBottomIndex;
@@ -108,10 +122,11 @@ class ChessGame extends Component {
           isTurn={this.state.turn === topColor}
           onSelectPiece={this.onSelectPieceFromReserve}
           queue={topReserve} />
+        <div className="ChessGame__username">{topId}</div>
         <div className="ChessGame__play">
           <Chessboard
             activeSquare={activeSquare}
-            flipped={this.state.flipped}
+            flipped={this.props.isFlipped}
             moves={this.state.moves}
             board={this.state.board}
             inCheck={this.state.inCheck}
@@ -129,6 +144,7 @@ class ChessGame extends Component {
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
+        <div className="ChessGame__username">{bottomId}</div>
         <Reserve
           activeIndex={activeBottomIndex}
           color={bottomColor}
@@ -270,7 +286,7 @@ class ChessGame extends Component {
 
   _updateBoard() {
     this.setState({
-      board: this._getBoard({flipped: this.state.flipped}),
+      board: this._getBoard({flipped: this.props.isFlipped}),
       fen: this.chess.fen(),
       inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
       inCheck: this.chess.in_check(),
@@ -303,9 +319,10 @@ class ChessGame extends Component {
   }
 
   onFlip = () => {
+    this.props.onFlip();
+
     this.setState({
-      flipped: !this.state.flipped,
-      board: this._getBoard({flipped: !this.state.flipped})
+      board: this._getBoard({flipped: !this.props.isFlipped})
     });
   }
 }

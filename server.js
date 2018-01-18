@@ -12,6 +12,7 @@ app.set('port', (process.env.PORT || 3001));
 
 // TODO: Move into another file
 app.post('/api/game', function (req, res) {
+  // TODO
 	console.log('TODO: create game');
   res.send();
 });

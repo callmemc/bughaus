@@ -5,13 +5,21 @@ export function generateGameId() {
   return shortid.generate();
 }
 
-export function getWinningTeam({color, boardNum}) {
+export function getTeam({color, boardNum}) {
   if ((color === 'w' && boardNum === 0) ||
     (color === 'b' && boardNum === 1)) {
     return 1;
   } else {
     return 2;
   }
+}
+
+export function getOpposingBoardNum(boardNum) {
+  return boardNum === 0 ? 1 : 0;
+}
+
+export function getOpposingColor(color) {
+  return color === 'w' ? 'b' : 'w';
 }
 
 export function isMove(square, moves) {
