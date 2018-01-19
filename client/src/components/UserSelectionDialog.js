@@ -3,9 +3,16 @@ import TextField from 'material-ui/TextField';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import classNames from 'classnames';
-import './UserSelection.css';
+import styled from 'styled-components';
 import { getTeam } from '../utils';
+
+const UserSelectionContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const dialogStyle = {textAlign: 'center'};
 
 class UserSelectionDialog extends Component {
   static propTypes = {
@@ -29,7 +36,7 @@ class UserSelectionDialog extends Component {
     const currentUsername = _.get(this.props.currentUser, 'username');
 
     return (
-      <Dialog className="UserSelectionDialog" open={true}>
+      <Dialog open={true} style={dialogStyle}>
         <div>
           <TextField
             id="username"
@@ -37,8 +44,8 @@ class UserSelectionDialog extends Component {
             value={this.state.username}
             onChange={this.handleChange} />
         </div>
-        <div className="UserSelection__container">
-          <div className="UserSelection__game">
+        <UserSelectionContainer>
+          <div>
             <UserSelection
               color="b"
               boardNum={0}
@@ -52,7 +59,7 @@ class UserSelectionDialog extends Component {
               username={this.props.wUserId0}
               currentUsername={currentUsername} />
           </div>
-          <div className="UserSelection__game">
+          <div>
             <UserSelection
               color="w"
               boardNum={1}
@@ -66,7 +73,7 @@ class UserSelectionDialog extends Component {
               username={this.props.bUserId1}
               currentUsername={currentUsername} />
           </div>
-        </div>
+        </UserSelectionContainer>
       </Dialog>
     );
   }
@@ -81,6 +88,34 @@ class UserSelectionDialog extends Component {
   }
 }
 
+const UserButton = styled.button`
+  width: 150px;
+  height: 70px;
+  display: flex;
+  border: 1px solid gray;
+  align-items: center;
+  justify-content: center;
+  margin: 10px;
+  font-size: 0.9rem;
+
+  &:not([disabled]) {
+    cursor: pointer;
+    &:hover {
+      background-color: #ddd;
+    }
+  }
+
+  ${props => props.isSelected && `
+    border-color: #25ab25;
+    border-width: 2px;
+  `}
+`;
+
+const UserLabel = styled.div`
+  font-weight: bold;
+  margin-bottom: 5px;
+`;
+
 class UserSelection extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
@@ -90,16 +125,18 @@ class UserSelection extends Component {
 
   render() {
     const { color, boardNum, username, currentUsername } = this.props;
+    const teamNum = getTeam({ color, boardNum });
     const isSelected = currentUsername && currentUsername === username;
 
     return (
-      <button className={classNames("UserSelection", { "UserSelection--selected": isSelected})}
-        onClick={this.handleClick} disabled={username}>
+      <UserButton isSelected={isSelected} onClick={this.handleClick} disabled={username}>
         <div>
-          <div className="UserSelection__label">{getColorLabel(color)}, Team {getTeam({color, boardNum})}</div>
-          <div className="UserSelection__username">{username}</div>
+          <UserLabel>
+            {getColorLabel(color)}, Team {teamNum}
+          </UserLabel>
+          <div>{username}</div>
         </div>
-      </button>
+      </UserButton>
     );
   }
 

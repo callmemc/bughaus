@@ -1,38 +1,3 @@
 .UserSelectionDialog {
   text-align: center;
 }
-
-.UserSelection__container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.UserSelection {
-  width: 150px;
-  height: 70px;
-  display: flex;
-  border: 1px solid gray;
-  align-items: center;
-  justify-content: center;
-  margin: 10px;
-  font-size: 0.9rem;
-}
-
-.UserSelection--selected {
-  border-color: #25ab25;
-  border-width: 2px;
-}
-
-.UserSelection:hover:not([disabled]) {
-  background-color: #ddd;
-}
-
-.UserSelection:not([disabled]) {
-  cursor: pointer;
-}
-
-.UserSelection__label {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
