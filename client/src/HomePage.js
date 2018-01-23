@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
-import Client from './Client';
 import { generateGameId } from './utils';
 import FlatButton from 'material-ui/FlatButton';
 
@@ -40,7 +39,8 @@ class HomePage extends Component {
       // TODO
     }
 
-    Client.createGame(gameId);
+    // TODO
+    // Client.createGame(gameId);
     this.props.history.push(`/game/${gameId}`)
   }
 }

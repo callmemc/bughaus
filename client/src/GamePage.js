@@ -26,14 +26,20 @@ class GamePage extends Component {
   }
 
   componentDidMount() {
-    // Initialize socket connection when component mounts
-    const gameId = this.props.match.params.gameId;
-    this.socket = socketClient.initialize(gameId);
-    this.socket.on('updateGame', this.updateGameListener);
+    // Initial server request initiates the session middleware on server
+    fetch('/session', {
+      method: 'get',
+      credentials: 'include'
+    }).then(() => {
+      // TODO: Figure out why this needs to be in callback
+      // Initialize socket connection when component mounts
+      this.socket = socketClient.initialize(this._getGameId());
+      this.socket.on('updateGame', this.updateGameListener);
+    });
   }
 
   render() {
-    const boardNum = _.get(this.state.currentUser, 'boardNum') || 0;
+    const boardNum = _.get(this.state.currentSession, 'boardNum') || 0;
     const opposingBoardNum = getOpposingBoardNum(boardNum);
 
     return (
@@ -88,19 +94,19 @@ class GamePage extends Component {
 
   handleSelectUser = ({ color, boardNum, username }) => {
     const userKey = `${color}UserId${boardNum}`;
-
-    // TODO: Store current user in session. This is a TEMPORARY hack
-    const newState = { [userKey]: username, currentUser: { color, boardNum, username } };
-    this.setState(newState);
-    this.socket.emit('move', newState);
-
     const flipBoard0 = (color === 'b' && boardNum === 0) ||
       (color === 'w' && boardNum === 1);
 
+    // TODO: Store current user in session. This is a TEMPORARY hack
     this.setState({
+      [userKey]: username,
+      currentSession: { color, boardNum, username },
       isFlipped0: flipBoard0,
       isFlipped1: !flipBoard0
     });
+
+    const gameId = this._getGameId();
+    this.socket.emit('join', { gameId, username, color, boardNum, userKey });
   }
 
   handleFlip = (boardNum) => {
@@ -139,13 +145,17 @@ class GamePage extends Component {
 
     return (
       <UserSelectionDialog
-        currentUser={this.state.currentUser}
+        currentSession={this.state.currentSession}
         wUserId0={wUserId0}
         bUserId0={bUserId0}
         wUserId1={wUserId1}
         bUserId1={bUserId1}
         onSelectUser={this.handleSelectUser} />
     );
+  }
+
+  _getGameId() {
+    return this.props.match.params.gameId;
   }
 }
 

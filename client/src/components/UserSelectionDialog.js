@@ -16,7 +16,7 @@ const dialogStyle = {textAlign: 'center'};
 
 class UserSelectionDialog extends Component {
   static propTypes = {
-    currentUser: PropTypes.object,
+    currentSession: PropTypes.object,
     wUserId0: PropTypes.string,
     bUserId0: PropTypes.string,
     wUserId1: PropTypes.string,
@@ -33,7 +33,7 @@ class UserSelectionDialog extends Component {
   }
 
   render() {
-    const currentUsername = _.get(this.props.currentUser, 'username');
+    const currentUsername = _.get(this.props.currentSession, 'username');
 
     return (
       <Dialog open={true} style={dialogStyle}>

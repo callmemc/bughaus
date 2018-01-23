@@ -2,8 +2,6 @@ import io from 'socket.io-client';
 
 function attachListeners(socket, gameId) {
   socket.on('connect', (data) => {
-    console.log('connection', gameId);
-
     // watch game
     socket.emit('watch', gameId);
   });
