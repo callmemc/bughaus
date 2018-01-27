@@ -77,7 +77,7 @@ db.connectClient().then((dbInstance) => {
       console.error('No game id');
       return;
     }
-    db.createGame(req.body.gameId).then(() => {
+    db.createGame(req.body.gameId, req.body.gameType).then(() => {
       res.send();
     });
   });

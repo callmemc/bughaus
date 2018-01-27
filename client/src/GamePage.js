@@ -65,6 +65,7 @@ class GamePage extends Component {
   }
 
   updateGameListener = (data) => {
+    // TODO: Think about restructuring this so not blindly writing all params to state
     this.setState(data);
   }
 
@@ -143,10 +144,10 @@ class GamePage extends Component {
   }
 
   _renderUserSelectionDialog() {
-    const { wUserId0, bUserId0, wUserId1, bUserId1 } = this.state;
+    const { wUserId0, bUserId0, wUserId1, bUserId1, gameType } = this.state;
 
-    // TODO: and type is multiplayer
-    if (wUserId0 && bUserId0 && wUserId1 && bUserId1) {
+    if (gameType === 'SIM' ||
+      (wUserId0 && bUserId0 && wUserId1 && bUserId1)) {
       return null;
     }
 

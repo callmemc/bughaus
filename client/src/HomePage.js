@@ -32,16 +32,12 @@ class HomePage extends Component {
     );
   }
 
-  createGame = (type) => {
+  createGame = (gameType) => {
     const gameId = generateGameId();
-
-    if (type === 'MULTI') {
-      // TODO
-    }
 
     return fetch(`/api/game`, {
       method: 'POST',
-      body: JSON.stringify({ gameId }),
+      body: JSON.stringify({ gameId, gameType }),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
