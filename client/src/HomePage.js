@@ -39,9 +39,19 @@ class HomePage extends Component {
       // TODO
     }
 
-    // TODO
-    // Client.createGame(gameId);
-    this.props.history.push(`/game/${gameId}`)
+    return fetch(`/api/game`, {
+      method: 'POST',
+      body: JSON.stringify({ gameId }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    }).then(() => {
+      this.props.history.push(`/game/${gameId}`)
+    }).catch((error) => {
+      console.error(error);
+    });;
+
   }
 }
 

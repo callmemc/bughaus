@@ -17,9 +17,13 @@
     "mocha": "^4.0.1"
   },
   "dependencies": {
+    "assert": "^1.4.1",
+    "body-parser": "^1.18.2",
+    "connect-mongo": "^2.0.1",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "lodash": "^4.17.4",
+    "mongodb": "^3.0.1",
     "socket.io": "^2.0.4"
   },
   "@std/esm": "cjs"

@@ -26,14 +26,21 @@ class GamePage extends Component {
   }
 
   componentDidMount() {
-    // Initial server request initiates the session middleware on server
-    fetch('/session', {
-      method: 'get',
+    const gameId = this._getGameId();
+
+    fetch(`/api/game/${gameId}`, {
+      headers: {
+        'Accept': 'application/json'
+      },
+      // Initial server request initiates the session middleware on server
       credentials: 'include'
-    }).then(() => {
+    })
+    .then((response) => response.json())
+    .then(this.updateGameListener)
+    .then(() => {
       // TODO: Figure out why this needs to be in callback
       // Initialize socket connection when component mounts
-      this.socket = socketClient.initialize(this._getGameId());
+      this.socket = socketClient.initialize(gameId);
       this.socket.on('updateGame', this.updateGameListener);
     });
   }
