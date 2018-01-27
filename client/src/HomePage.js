@@ -46,7 +46,7 @@ class HomePage extends Component {
       this.props.history.push(`/game/${gameId}`)
     }).catch((error) => {
       console.error(error);
-    });;
+    });
 
   }
 }

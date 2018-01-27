@@ -125,6 +125,8 @@ class GamePage extends Component {
   }
 
   _renderChessGame(boardNum) {
+    const { boardNum: myBoardNum, color: myColor } = this.state.currentSession || {};
+
     return (
       <div>
         <ChessGame
@@ -138,6 +140,9 @@ class GamePage extends Component {
           isFlipped={this.state[`isFlipped${boardNum}`]}
           onFlip={() => this.handleFlip(boardNum)}
           onMove={data => this.handleMove(boardNum, data)}
+          myColor={myColor}
+          isSimGame={this.state.gameType === 'SIM'}
+          isMyGame={myBoardNum === boardNum}
           isGameOver={!!this.state.winner} />
       </div>
     );

@@ -40,10 +40,15 @@ class Chessboard extends Component {
                   'dark' : 'light';
                 const isPrevMove = square === this.props.prevFromSquare ||
                   square === this.props.prevToSquare;
+                const pieceColor = _.get(piece, 'color');
+
+                const { turn, isMyGame, isSimGame, myColor } = this.props;
+                const hasMovablePiece = turn === pieceColor &&
+                  ((isMyGame && myColor === pieceColor) || isSimGame) ;
 
                 return <Square
                   key={fileIndex}
-                  hasValidPiece={this.props.turn === _.get(piece, 'color')}
+                  hasValidPiece={hasMovablePiece}
                   isActive={square === this.props.activeSquare}
                   isPrevMove={isPrevMove}
                   isValidMove={isMove(square, moves)}
@@ -53,7 +58,7 @@ class Chessboard extends Component {
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
                   onSelect={this.props.onSelectSquare}
                   pieceType={_.get(piece, 'type')}
-                  pieceColor={_.get(piece, 'color')}
+                  pieceColor={pieceColor}
                   square={square}
                   squareColor={squareColor} />
               })}

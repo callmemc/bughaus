@@ -82,46 +82,28 @@ class ChessGame extends Component {
     const { history } = this.props;
     const { activePiece } = this.state;
 
-    let bottomColor, topColor, bottomReserve, topReserve, bottomId, topId;
+    let bottomColor, topColor, bottomId, topId;
 
     if (this.props.isFlipped) {
       bottomColor = 'b';
       topColor = 'w';
-      bottomReserve = this.props.bReserve;
-      topReserve = this.props.wReserve;
       bottomId = this.props.bUserId;
       topId = this.props.wUserId;
     } else {
       bottomColor = 'w';
       topColor = 'b';
-      bottomReserve = this.props.wReserve;
-      topReserve = this.props.bReserve;
       bottomId = this.props.wUserId;
       topId = this.props.bUserId;
     }
 
-    let activeSquare, activeTopIndex, activeBottomIndex;
-    if (activePiece) {
-      if (activePiece.type === 'board') {
-        activeSquare = activePiece.square;
-      } else {
-        if (activePiece.color === topColor) {
-          activeTopIndex = activePiece.index;
-        } else {
-          activeBottomIndex = activePiece.index;
-        }
-      }
+    let activeSquare;
+    if (activePiece && activePiece.type === 'board') {
+      activeSquare = activePiece.square;
     }
 
     return (
       <div className="ChessGame">
-        <Reserve
-          activeIndex={activeTopIndex}
-          color={topColor}
-          isGameOver={this.props.isGameOver}
-          isTurn={this.state.turn === topColor}
-          onSelectPiece={this.onSelectPieceFromReserve}
-          queue={topReserve} />
+        {this._renderReserve(topColor)}
         <div className="ChessGame__username">{topId}</div>
         <div className="ChessGame__play">
           <Chessboard
@@ -131,6 +113,9 @@ class ChessGame extends Component {
             board={this.state.board}
             inCheck={this.state.inCheck}
             isGameOver={this.props.isGameOver}
+            isMyGame={this.props.isMyGame}
+            isSimGame={this.props.isSimGame}
+            myColor={this.props.myColor}
             prevFromSquare={_.get(history, 'prevFromSquare')}
             prevToSquare={_.get(history, 'prevToSquare')}
             onDropPiece={this.onDropPiece}
@@ -145,16 +130,29 @@ class ChessGame extends Component {
             turn={this.state.turn} />
         </div>
         <div className="ChessGame__username">{bottomId}</div>
-        <Reserve
-          activeIndex={activeBottomIndex}
-          color={bottomColor}
-          isGameOver={this.props.isGameOver}
-          isTurn={this.state.turn === bottomColor}
-          onSelectPiece={this.onSelectPieceFromReserve}
-          queue={bottomReserve} />
+        {this._renderReserve(bottomColor)}
         {this._renderPromotionDialog()}
       </div>
     );
+  }
+
+  _renderReserve(color) {
+    const { activePiece } = this.state;
+    const { isGameOver, isMyGame, isSimGame, myColor } = this.props;
+
+    let activeIndex;
+    if (activePiece && activePiece.type === 'reserve'  && activePiece.color === color) {
+      activeIndex = activePiece.index;
+    }
+
+    return <Reserve
+      activeIndex={activeIndex}
+      color={color}
+      isGameOver={isGameOver}
+      isSelectable={!isGameOver && this.state.turn === color &&
+        ((isMyGame && myColor === color) || isSimGame)}
+      onSelectPiece={this.onSelectPieceFromReserve}
+      queue={this.props[`${color}Reserve`]} />;
   }
 
   onDropPiece = ({from, to}) => {

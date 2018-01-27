@@ -7,7 +7,7 @@ class Reserve extends Component {
   static propTypes = {
     activeIndex: PropTypes.number,
     color: PropTypes.string.isRequired,
-    isTurn: PropTypes.bool,
+    isSelectable: PropTypes.bool,
     onSelectPiece: PropTypes.func.isRequired,
     queue: PropTypes.string.isRequired
   }
@@ -21,8 +21,7 @@ class Reserve extends Component {
             color={this.props.color}
             index={index}
             isActive={this.props.activeIndex === index}
-            isDraggable={!this.props.isGameOver && this.props.isTurn}
-            isSelectable={this.props.isTurn}
+            isSelectable={!this.props.isGameOver && this.props.isSelectable}
             onSelect={this.props.onSelectPiece}
             type={piece} />
         ))}
@@ -36,7 +35,6 @@ class ReservePiece extends Component {
     color: PropTypes.string.isRequired,
     index: PropTypes.number.isRequired,
     isActive: PropTypes.bool,
-    isDraggable: PropTypes.bool,
     onSelect: PropTypes.func.isRequired,
     type: PropTypes.string.isRequired
   }
@@ -49,7 +47,7 @@ class ReservePiece extends Component {
         <Piece
           color={this.props.color}
           index={this.props.index}
-          isDraggable={this.props.isDraggable}
+          isDraggable={this.props.isSelectable}
           type={this.props.type} />
       </div>
     );
