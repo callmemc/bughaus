@@ -16,12 +16,6 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
 }
 
-// Serve app when using client-side routing by serving index.html for any unknown paths
-// (See https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#serving-apps-with-client-side-routing)
-app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
-
 const server = require('http').createServer(app);
 server.listen(port, () => {
   console.log(`** Server listening on port ${port} **`);
@@ -89,6 +83,12 @@ db.connectClient().then((dbInstance) => {
     db.createGame(req.body.gameId, req.body.gameType).then(() => {
       res.send();
     });
+  });
+
+  // Serve app when using client-side routing by serving index.html for any unknown paths
+  // (See https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#serving-apps-with-client-side-routing)
+  app.get('/*', function (req, res) {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
   });
 }).catch((error) => {
   console.error(error);
