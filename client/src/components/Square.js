@@ -58,9 +58,27 @@ class Square extends Component {
 }
 
 const squareTarget = {
-  // canDrop: (props, monitor) => {
-  //   // TODO
-  // },
+  canDrop: (props, monitor) => {
+    const item = monitor.getItem();
+    if (!item.square) {
+      const { pieceType, square } = props;
+
+      // Disallow dropping of pieces on other pieces
+      if (pieceType) {
+        return false;
+      }
+
+      // Disallow dropping pawns on back row
+      const rank = square[1];
+      if (item.type === 'p') {
+        const isBackRank = (item.color === 'w' && rank === '8') ||
+          (item.color === 'b' && rank === '1');
+        return !isBackRank;
+      }
+    }
+
+    return true;
+  },
 
   drop: (props, monitor, component) => {
     const item = monitor.getItem();

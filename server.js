@@ -2,23 +2,32 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import socket from 'socket.io';
+import path from 'path';
 import socketServer from './socketServer';
 import * as db from './db';
 
 const app = express();
+const port = process.env.PORT || 3001;
+app.set('port', port);
 app.use(bodyParser.json());
 
+// Express only serves static assets in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'client/build')));
+}
+
+// Serve app when using client-side routing by serving index.html for any unknown paths
+// (See https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#serving-apps-with-client-side-routing)
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
 const server = require('http').createServer(app);
-const io = socket.listen(server);
-
-app.set('port', (process.env.PORT || 3001));
-
-socketServer.attach(io);
-
-const port = app.get('port');
 server.listen(port, () => {
   console.log(`** Server listening on port ${port} **`);
 });
+const io = socket.listen(server);
+socketServer.attach(io);
 
 /****** Session Middleware ******/
 
@@ -81,4 +90,6 @@ db.connectClient().then((dbInstance) => {
       res.send();
     });
   });
+}).catch((error) => {
+  console.error(error);
 });

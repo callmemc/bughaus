@@ -3,10 +3,10 @@ import { MongoClient, ObjectId } from 'mongodb';
 import assert from 'assert';
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
 // Database name
-const dbName = 'chess';
+const dbName = 'bughaus';
 
 let db;
 
@@ -15,8 +15,7 @@ export default db;
 
 export function connectClient() {
   // Connect to a running mongodb deployment
-  return MongoClient.connect(url)
-    .then((client) => {
+  return MongoClient.connect(uri).then((client) => {
       console.log("** Connected successfully to mongo server **");
 
       db = client.db(dbName);
@@ -24,6 +23,8 @@ export function connectClient() {
 
       // TODO: when do you do this?
       // client.close();
+    }).catch((error) => {
+      console.error(error);
     });
 }
 
