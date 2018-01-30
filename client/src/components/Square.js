@@ -67,22 +67,11 @@ const squareTarget = {
       return false;
     }
 
-    // TODO: Move this validation to onDropPieceFromReserve
+    // Disallow dropping of pieces on other pieces
+    // TODO: Reconcile this validation with that in onSelectSquare (!existingPiece)
+    //  Having separate validations for dragging vs. clicking squares is confusing
     if (!item.square) {
-      const { pieceType, square } = props;
-
-      // Disallow dropping of pieces on other pieces
-      if (pieceType) {
-        return false;
-      }
-
-      // Disallow dropping pawns on back row
-      const rank = square[1];
-      if (item.type === 'p') {
-        const isBackRank = (item.color === 'w' && rank === '8') ||
-          (item.color === 'b' && rank === '1');
-        return !isBackRank;
-      }
+      return !props.pieceType;
     }
 
     return true;
@@ -99,6 +88,7 @@ const squareTarget = {
       props.onDropPieceFromReserve({
         index: item.index,
         type: item.type,
+        color: item.color,
         to: props.square
       })
     }

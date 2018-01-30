@@ -192,8 +192,16 @@ class ChessGame extends Component {
     }
   }
 
-  onDropPieceFromReserve = ({ index, type, to }) => {
-    // TODO: disallow dropping pawns on back row
+  onDropPieceFromReserve = ({ index, type, to, color }) => {
+    // Disallow dropping pawns on back row
+    const rank = to[1];
+    if (type === 'p') {
+      const isBackRank = (color === 'w' && rank === '8') ||
+        (color === 'b' && rank === '1');
+      if (isBackRank) {
+        return;
+      }
+    }
 
     const moveResult = this.chess.put({ type, color: this.state.turn }, to);
 
@@ -237,6 +245,7 @@ class ChessGame extends Component {
       this.onDropPieceFromReserve({
         index: activePiece.index,
         type: activePiece.piece,
+        color: activePiece.color,
         to: square
       });
       return;
