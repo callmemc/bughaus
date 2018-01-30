@@ -8,6 +8,7 @@ import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
 import { isMove } from '../utils';
+import * as sounds from '../sounds';
 
 const Username = styled.div`
   height: 18px;
@@ -255,6 +256,13 @@ class ChessGame extends Component {
   }
 
   _makeMove({ capturedPiece, droppedPieceIndex, from, to, isPromotion }) {
+    // Play sound
+    if (capturedPiece) {
+      sounds.playCaptureSound();
+    } else {
+      sounds.playMoveSound();
+    }
+
     // If move captures a promoted piece, turn it back to pawn
     if (capturedPiece && this.state.promotedSquares[to]) {
       delete this.state.promotedSquares[to];
