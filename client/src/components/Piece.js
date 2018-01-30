@@ -38,6 +38,7 @@ const pieceSource = {
       type: props.type,
       square: props.square,
       index: props.index,
+      boardNum: props.boardNum
     };
   },
 

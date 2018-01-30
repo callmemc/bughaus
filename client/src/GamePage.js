@@ -164,6 +164,7 @@ class GamePage extends Component {
     return (
       <div>
         <ChessGame
+          boardNum={boardNum}
           wUserId={this.state[`wUserId${boardNum}`]}
           bUserId={this.state[`bUserId${boardNum}`]}
           fen={this.state[`fen${boardNum}`]}

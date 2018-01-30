@@ -6,7 +6,7 @@ import classNames from 'classnames';
 
 class Square extends Component {
   static propTypes = {
-    hasValidPiece: PropTypes.bool,
+    hasMovablePiece: PropTypes.bool,
     isPrevMove: PropTypes.bool,
     isValidMove: PropTypes.bool,
     isActive: PropTypes.bool,
@@ -18,7 +18,7 @@ class Square extends Component {
     // TODO: move this to higher props
     const isCheckedKing = this.props.inCheck &&
       this.props.pieceType === 'k' &&
-      this.props.hasValidPiece;
+      this.props.hasMovablePiece;
 
     return this.props.connectDropTarget(
       <div className={classNames(`Chessboard-square Chessboard-square--${this.props.squareColor}`,
@@ -37,7 +37,7 @@ class Square extends Component {
     // TODO: clean up logic for treating drop from piece reserve moves differently
     //  from board moves
     if (!this.props.isGameOver &&
-      (this.props.hasValidPiece || this.props.isValidMove || !this.props.pieceType)) {
+      (this.props.hasMovablePiece || this.props.isValidMove || !this.props.pieceType)) {
       this.props.onSelect(this.props.square, this.props.pieceType);
     }
   }
@@ -49,8 +49,9 @@ class Square extends Component {
 
     return (
       <Piece
+        boardNum={this.props.boardNum}
         color={this.props.pieceColor}
-        isDraggable={!this.props.isGameOver && this.props.hasValidPiece}
+        isDraggable={!this.props.isGameOver && this.props.hasMovablePiece}
         type={this.props.pieceType}
         square={this.props.square} />
     );
@@ -60,6 +61,13 @@ class Square extends Component {
 const squareTarget = {
   canDrop: (props, monitor) => {
     const item = monitor.getItem();
+
+    // Disallow dropping of pieces from one board to the next
+    if (item.boardNum !== props.boardNum) {
+      return false;
+    }
+
+    // TODO: Move this validation to onDropPieceFromReserve
     if (!item.square) {
       const { pieceType, square } = props;
 

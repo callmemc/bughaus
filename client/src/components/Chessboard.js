@@ -47,7 +47,8 @@ class Chessboard extends Component {
 
                 return <Square
                   key={fileIndex}
-                  hasValidPiece={hasMovablePiece}
+                  boardNum={this.props.boardNum}
+                  hasMovablePiece={hasMovablePiece}
                   isActive={square === this.props.activeSquare}
                   isPrevMove={isPrevMove}
                   isValidMove={isMove(square, moves)}

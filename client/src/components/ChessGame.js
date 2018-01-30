@@ -115,6 +115,7 @@ class ChessGame extends Component {
         <Username>{topId}</Username>
         <div className="ChessGame__play">
           <Chessboard
+            boardNum={this.props.boardNum}
             activeSquare={activeSquare}
             flipped={this.props.isFlipped}
             moves={this.state.moves}
@@ -156,6 +157,7 @@ class ChessGame extends Component {
 
     return <Reserve
       activeIndex={activeIndex}
+      boardNum={this.props.boardNum}
       color={color}
       isGameOver={isGameOver}
       isSelectable={!isGameOver && turn === color && isPlayer}

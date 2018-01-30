@@ -18,6 +18,7 @@ class Reserve extends Component {
         {this.props.queue.split('').filter(val => val).map((piece, index) => (
           <ReservePiece
             key={index}
+            boardNum={this.props.boardNum}
             color={this.props.color}
             index={index}
             isActive={this.props.activeIndex === index}
@@ -45,6 +46,7 @@ class ReservePiece extends Component {
         {'Reserve__piece--active': this.props.isActive})}
         onMouseDown={this.handleMouseDown}>
         <Piece
+          boardNum={this.props.boardNum}
           color={this.props.color}
           index={this.props.index}
           isDraggable={this.props.isSelectable}
