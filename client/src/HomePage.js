@@ -8,24 +8,15 @@ class HomePage extends Component {
     return (
       <div className="App">
         <h3>Create a Bughouse Game</h3>
-        <p>Which type of game do you want to create?</p>
         <div className="GameButtons">
           <div className="GameButton">
             <FlatButton
-              label="Simulated"
-              backgroundColor="#a4c639"
-              hoverColor="#8AA62F"
-              labelStyle={{color: 'white'}}
-              onClick={() => this.createGame('SIM')} />
-          </div>
-          <div className="GameButton">
-            <FlatButton
               className="GameButton"
-              label="Multiplayer"
+              label="Let's go!"
               backgroundColor="#a4c639"
               hoverColor="#8AA62F"
               labelStyle={{color: 'white'}}
-              onClick={() => this.createGame('MULTI')} />
+              onClick={this.createGame} />
           </div>
         </div>
       </div>
@@ -37,7 +28,7 @@ class HomePage extends Component {
 
     return fetch(`/api/game`, {
       method: 'POST',
-      body: JSON.stringify({ gameId, gameType }),
+      body: JSON.stringify({ gameId }),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'

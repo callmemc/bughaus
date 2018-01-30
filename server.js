@@ -55,21 +55,11 @@ db.connectClient().then((dbInstance) => {
     const gameId = req.params.id;
 
     db.getGame(gameId).then((result) => {
-      const sessionData = req.session[gameId];
-      let flipBoard0 = false;
-
-      // TODO: move to util
-      if (sessionData) {
-        const { color, boardNum } = sessionData;
-        flipBoard0 = (color === 'b' && boardNum === 0) ||
-          (color === 'w' && boardNum === 1);
-      }
+      const { username } = req.session[gameId] || {};
 
       res.json({
         ...result,
-        currentSession: sessionData,
-        isFlipped0: flipBoard0,
-        isFlipped1: !flipBoard0
+        username
       });
     });
   });
@@ -80,7 +70,7 @@ db.connectClient().then((dbInstance) => {
       console.error('No game id');
       return;
     }
-    db.createGame(req.body.gameId, req.body.gameType).then(() => {
+    db.createGame(req.body.gameId).then(() => {
       res.send();
     });
   });

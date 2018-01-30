@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
-import _ from 'lodash';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
-import UserSelectionDialog from './components/UserSelectionDialog';
+import PlayerSelectionDialog from './components/PlayerSelectionDialog';
 import {
   getTeam,
   getOpposingBoardNum,
@@ -36,17 +35,34 @@ class GamePage extends Component {
       credentials: 'include'
     })
     .then((response) => response.json())
-    .then(this.updateGameListener)
+    .then((result) => {
+      const { username, bUserId0, wUserId1, wUserId0 } = result;
+      // TODO: util
+      const flipBoard0 = (username === bUserId0 || username === wUserId1) &&
+        username !== wUserId0;
+
+      this.updateGameListener({
+        ...result,
+        isFlipped0: flipBoard0,
+        isFlipped1: !flipBoard0
+      });
+    })
     .then(() => {
       // TODO: Figure out why this needs to be in callback
       // Initialize socket connection when component mounts
       this.socket = socketClient.initialize(gameId);
       this.socket.on('updateGame', this.updateGameListener);
+      this.socket.on('startGame', this.startGameListener);
     });
   }
 
   render() {
-    const boardNum = _.get(this.state.currentSession, 'boardNum') || 0;
+    // TODO: Util. Also think about this... Consider ability to swap boards?
+    // If multiple users, Board 0 takes precedence, and white takes precedence
+    const { username, wUserId0, wUserId1, bUserId0, bUserId1 } = this.state;
+    const isBoard0 = username === wUserId0 || username === bUserId0;
+    const isBoard1 = username === wUserId1 || username === bUserId1;
+    const boardNum = isBoard0 ? 0 : (isBoard1 ? 1 : 0);
     const opposingBoardNum = getOpposingBoardNum(boardNum);
 
     return (
@@ -59,7 +75,7 @@ class GamePage extends Component {
         </div>
         <GameStatus winner={this.state.winner} />
         <PieceDragLayer />
-        {this._renderUserSelectionDialog()}
+        {this._renderPlayerSelectionDialog()}
       </div>
     );
   }
@@ -67,6 +83,20 @@ class GamePage extends Component {
   updateGameListener = (data) => {
     // TODO: Think about restructuring this so not blindly writing all params to state
     this.setState(data);
+  }
+
+  startGameListener = (data) => {
+    const { bUserId0, wUserId1, wUserId0 } = data;
+    const { username } = this.state;
+
+    // TODO: util
+    const flipBoard0 = (username === bUserId0 || username === wUserId1) &&
+      username !== wUserId0;
+
+    this.setState({
+      isFlipped0: flipBoard0,
+      isFlipped1: !flipBoard0
+    });
   }
 
   handleMove = (boardNum, data) => {
@@ -100,21 +130,27 @@ class GamePage extends Component {
     this.socket.emit('move', newState);
   }
 
-  handleSelectUser = ({ color, boardNum, username }) => {
-    const userKey = `${color}UserId${boardNum}`;
-    const flipBoard0 = (color === 'b' && boardNum === 0) ||
-      (color === 'w' && boardNum === 1);
+  handleCreateUsername = (username) => {
+    this.socket.emit('createUsername', {
+      gameId: this._getGameId(),
+      username
+    });
 
-    // TODO: Store current user in session. This is a TEMPORARY hack
+    // TODO: Need to be more explicit about how username is passed from server to state
+    this.setState({ username });
+  }
+
+  handleSelectPlayer = ({ color, boardNum, username }) => {
+    const userKey = `${color}UserId${boardNum}`;
+
+    // TODO: Allow changing of username by using the session id, rather than username,
+    //  for the player user id
     this.setState({
-      [userKey]: username,
-      currentSession: { color, boardNum, username },
-      isFlipped0: flipBoard0,
-      isFlipped1: !flipBoard0
+      [userKey]: username
     });
 
     const gameId = this._getGameId();
-    this.socket.emit('join', { gameId, username, color, boardNum, userKey });
+    this.socket.emit('join', { gameId, userKey, username });
   }
 
   handleFlip = (boardNum) => {
@@ -125,8 +161,6 @@ class GamePage extends Component {
   }
 
   _renderChessGame(boardNum) {
-    const { boardNum: myBoardNum, color: myColor } = this.state.currentSession || {};
-
     return (
       <div>
         <ChessGame
@@ -140,30 +174,29 @@ class GamePage extends Component {
           isFlipped={this.state[`isFlipped${boardNum}`]}
           onFlip={() => this.handleFlip(boardNum)}
           onMove={data => this.handleMove(boardNum, data)}
-          myColor={myColor}
-          isSimGame={this.state.gameType === 'SIM'}
-          isMyGame={myBoardNum === boardNum}
-          isGameOver={!!this.state.winner} />
+          isGameOver={!!this.state.winner}
+          username={this.state.username} />
+        <div>Board {boardNum}</div>
       </div>
     );
   }
 
-  _renderUserSelectionDialog() {
-    const { wUserId0, bUserId0, wUserId1, bUserId1, gameType } = this.state;
+  _renderPlayerSelectionDialog() {
+    const { wUserId0, bUserId0, wUserId1, bUserId1, username } = this.state;
 
-    if (gameType === 'SIM' ||
-      (wUserId0 && bUserId0 && wUserId1 && bUserId1)) {
+    if (wUserId0 && bUserId0 && wUserId1 && bUserId1) {
       return null;
     }
 
     return (
-      <UserSelectionDialog
-        currentSession={this.state.currentSession}
+      <PlayerSelectionDialog
         wUserId0={wUserId0}
         bUserId0={bUserId0}
         wUserId1={wUserId1}
         bUserId1={bUserId1}
-        onSelectUser={this.handleSelectUser} />
+        username={username}
+        onCreateUsername={this.handleCreateUsername}
+        onSelectPlayer={this.handleSelectPlayer} />
     );
   }
 

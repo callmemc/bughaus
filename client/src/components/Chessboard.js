@@ -42,9 +42,8 @@ class Chessboard extends Component {
                   square === this.props.prevToSquare;
                 const pieceColor = _.get(piece, 'color');
 
-                const { turn, isMyGame, isSimGame, myColor } = this.props;
-                const hasMovablePiece = turn === pieceColor &&
-                  ((isMyGame && myColor === pieceColor) || isSimGame) ;
+                const isPlayer = this.props[`${pieceColor}UserId`] === this.props.username;
+                const hasMovablePiece = this.props.turn === pieceColor && isPlayer;
 
                 return <Square
                   key={fileIndex}

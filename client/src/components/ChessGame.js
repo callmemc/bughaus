@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
+import styled from 'styled-components';
 import chessjs from '../chess.js';
 import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
 import { isMove } from '../utils';
+
+const Username = styled.div`
+  height: 18px;
+  text-align: left;
+  margin: 8px 0 8px 14px;
+`;
 
 class ChessGame extends Component {
   static propTypes = {
@@ -104,7 +111,7 @@ class ChessGame extends Component {
     return (
       <div className="ChessGame">
         {this._renderReserve(topColor)}
-        <div className="ChessGame__username">{topId}</div>
+        <Username>{topId}</Username>
         <div className="ChessGame__play">
           <Chessboard
             activeSquare={activeSquare}
@@ -113,15 +120,15 @@ class ChessGame extends Component {
             board={this.state.board}
             inCheck={this.state.inCheck}
             isGameOver={this.props.isGameOver}
-            isMyGame={this.props.isMyGame}
-            isSimGame={this.props.isSimGame}
-            myColor={this.props.myColor}
             prevFromSquare={_.get(history, 'prevFromSquare')}
             prevToSquare={_.get(history, 'prevToSquare')}
             onDropPiece={this.onDropPiece}
             onDropPieceFromReserve={this.onDropPieceFromReserve}
             onSelectSquare={this.onSelectSquare}
-            turn={this.state.turn} />
+            turn={this.state.turn}
+            wUserId={this.props.wUserId}
+            bUserId={this.props.bUserId}
+            username={this.props.username} />
           <Sidebar
             bottomColor={bottomColor}
             topColor={topColor}
@@ -129,7 +136,7 @@ class ChessGame extends Component {
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
-        <div className="ChessGame__username">{bottomId}</div>
+        <Username>{bottomId}</Username>
         {this._renderReserve(bottomColor)}
         {this._renderPromotionDialog()}
       </div>
@@ -137,8 +144,9 @@ class ChessGame extends Component {
   }
 
   _renderReserve(color) {
-    const { activePiece } = this.state;
-    const { isGameOver, isMyGame, isSimGame, myColor } = this.props;
+    const { activePiece, turn } = this.state;
+    const { isGameOver, username } = this.props;
+    const isPlayer = this.props[`${color}UserId`] === username;
 
     let activeIndex;
     if (activePiece && activePiece.type === 'reserve'  && activePiece.color === color) {
@@ -149,8 +157,7 @@ class ChessGame extends Component {
       activeIndex={activeIndex}
       color={color}
       isGameOver={isGameOver}
-      isSelectable={!isGameOver && this.state.turn === color &&
-        ((isMyGame && myColor === color) || isSimGame)}
+      isSelectable={!isGameOver && turn === color && isPlayer}
       onSelectPiece={this.onSelectPieceFromReserve}
       queue={this.props[`${color}Reserve`]} />;
   }

@@ -38,10 +38,10 @@ const INITIAL_GAME = {
   bReserve1: ''
 };
 
-export function createGame(gameId, gameType) {
+export function createGame(gameId) {
   const collection = db.collection('games');
   // Returns a promise if no callback is called
-  return collection.insertOne({ _id: gameId, gameType, ...INITIAL_GAME });
+  return collection.insertOne({ _id: gameId, ...INITIAL_GAME });
 }
 
 export function getGame(gameId) {
