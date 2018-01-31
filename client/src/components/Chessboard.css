@@ -123,6 +123,7 @@
   justify-content: center;
   align-items: center;
   background-color: #feef88;
+  text-align: center;
 }
 
 .PlayerBox, .PlayerBox--active {

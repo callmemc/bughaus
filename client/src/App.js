@@ -1,17 +1,40 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route, Link } from 'react-router-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import './App.css';
+import AppBar from 'material-ui/AppBar';
+import styled from 'styled-components';
 import HomePage from './HomePage';
 import GamePage from './GamePage';
+const src = require('./img/github.png');
+
+const Title = styled.div`
+  a {
+    text-decoration: inherit;
+    color: inherit;
+  }
+`;
+const LogoContainer = styled.a`
+  display: flex;
+  align-items: center;
+`;
+
+const Logo = styled.img`
+  width: 36px;
+  height: 36px;
+`;
 
 class PrimaryLayout extends Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title"><Link to="/">Welcome to Bughaus</Link></h1>
-        </header>
+      <div>
+        <AppBar
+          title={<Title><Link to="/">Bughaus</Link></Title>}
+          showMenuIconButton={false}
+          style={{backgroundColor: '#222'}}>
+          <LogoContainer href="https://github.com/callmemc/bughaus" target="_blank">
+            <Logo src={src} draggable="false" />
+          </LogoContainer>
+        </AppBar>
         <main>
           <Route path ="/" exact component={HomePage}/>
           <Route path ="/game/:gameId" exact component={GamePage}/>
