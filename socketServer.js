@@ -1,4 +1,8 @@
 import * as db from './db';
+import _ from 'lodash';
+
+// TODO: Move this into constants module
+const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
 
 let IO;
 
@@ -7,10 +11,42 @@ function connectSocket(socket) {
   // TODO: Make sure this is ok
   let socketGameId;
 
+  // Update player's game status to disconnected
+  socket.on('disconnect', () => {
+    const { username } = socket.request.session[socketGameId] || {};
+
+    db.getGame(socketGameId).then((result) => {
+      const gameData = _.reduce(userKeys, (memo, key) => {
+        if (result[key] && result[key].username === username) {
+          memo[key] = { username, status: 'DISCONNECTED' };
+        }
+        return memo;
+      }, {});
+
+      IO.to(socketGameId).emit('updateGame', gameData);
+      db.updateGame(socketGameId, gameData);
+    });
+  });
+
+  // Update player's game status to connected
   socket.on('watch', gameId => {
     socketGameId = gameId;
-
     socket.join(gameId);
+
+    // TODO: Reuse code with 'disconnect'
+    const { username } = socket.request.session[socketGameId] || {};
+
+    db.getGame(socketGameId).then((result) => {
+      const gameData = _.reduce(userKeys, (memo, key) => {
+        if (result[key] && result[key].username === username) {
+          memo[key] = { username, status: 'CONNECTED' };
+        }
+        return memo;
+      }, {});
+
+      IO.to(socketGameId).emit('updateGame', gameData);
+      db.updateGame(socketGameId, gameData);
+    });
   });
 
   socket.on('move', (data) => {
@@ -18,39 +54,52 @@ function connectSocket(socket) {
     db.updateGame(socketGameId, data);
   });
 
-  socket.on('createUsername', (data) => {
+  socket.on('setUsername', (data) => {
     const { gameId, username } = data;
 
-    // Save user's game session info
+    // Save username for a given game in session
     socket.request.session[gameId] = { username };
     socket.request.session.save();
   });
 
-  socket.on('join', (data) => {
+  socket.on('selectPlayer', (data) => {
     const { gameId, userKey, username } = data;
 
     // If all users have joined, start game, and signify that to user
     db.getGame(gameId).then((result) => {
-      const { wUserId0, wUserId1, bUserId0, bUserId1 } = result || {};
+      const { wPlayer0, wPlayer1, bPlayer0, bPlayer1 } = result || {};
+
+      // TODO: This is ugly
       if (
-        ((userKey === 'wUserId0' && username) || wUserId0) &&
-        ((userKey === 'wUserId1' && username) || wUserId1) &&
-        ((userKey === 'bUserId0' && username) || bUserId0) &&
-        ((userKey === 'bUserId1' && username) || bUserId1)) {
+        ((userKey === 'wPlayer0' && username) || wPlayer0) &&
+        ((userKey === 'wPlayer1' && username) || wPlayer1) &&
+        ((userKey === 'bPlayer0' && username) || bPlayer0) &&
+        ((userKey === 'bPlayer1' && username) || bPlayer1)) {
 
         console.log('TODO: Start clock');
 
         // Send flip board data
         IO.to(socketGameId).emit('startGame',
-          { wUserId0, wUserId1, bUserId0, bUserId1 });
+          { wPlayer0, wPlayer1, bPlayer0, bPlayer1 });
       }
     });
 
     // Update the game to reflect the username
     // const username = socket.request.session[gameId].username;
-    const gameData = { [userKey]: username };
-    socket.to(socketGameId).emit('updateGame', gameData);
-    db.updateGame(gameId, { ...data, ...gameData });
+    const gameData = {
+      [userKey]: { username, status: 'CONNECTED' }
+    };
+    IO.to(socketGameId).emit('updateGame', gameData);
+    db.updateGame(gameId, gameData);
+  });
+
+  socket.on('deselectPlayer', (data) => {
+    const { gameId, userKey } = data;
+
+    const gameData = { [userKey]: null };
+
+    IO.to(socketGameId).emit('updateGame', gameData);
+    db.updateGame(gameId, gameData);
   });
 }
 

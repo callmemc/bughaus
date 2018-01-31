@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
+import _ from 'lodash';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
@@ -36,10 +37,11 @@ class GamePage extends Component {
     })
     .then((response) => response.json())
     .then((result) => {
-      const { username, bUserId0, wUserId1, wUserId0 } = result;
+      const { username, bPlayer0, wPlayer1, wPlayer0 } = result;
       // TODO: util
-      const flipBoard0 = (username === bUserId0 || username === wUserId1) &&
-        username !== wUserId0;
+      const flipBoard0 = ( username === _.get(bPlayer0, 'username') ||
+        username === _.get(wPlayer1, 'username')) &&
+          username !== _.get(wPlayer0, 'username');
 
       this.updateGameListener({
         ...result,
@@ -59,9 +61,9 @@ class GamePage extends Component {
   render() {
     // TODO: Util. Also think about this... Consider ability to swap boards?
     // If multiple users, Board 0 takes precedence, and white takes precedence
-    const { username, wUserId0, wUserId1, bUserId0, bUserId1 } = this.state;
-    const isBoard0 = username === wUserId0 || username === bUserId0;
-    const isBoard1 = username === wUserId1 || username === bUserId1;
+    const { username, wPlayer0, wPlayer1, bPlayer0, bPlayer1 } = this.state;
+    const isBoard0 = username === wPlayer0 || username === bPlayer0;
+    const isBoard1 = username === wPlayer1 || username === bPlayer1;
     const boardNum = isBoard0 ? 0 : (isBoard1 ? 1 : 0);
     const opposingBoardNum = getOpposingBoardNum(boardNum);
 
@@ -86,12 +88,12 @@ class GamePage extends Component {
   }
 
   startGameListener = (data) => {
-    const { bUserId0, wUserId1, wUserId0 } = data;
+    const { bPlayer0, wPlayer1, wPlayer0 } = data;
     const { username } = this.state;
 
     // TODO: util
-    const flipBoard0 = (username === bUserId0 || username === wUserId1) &&
-      username !== wUserId0;
+    const flipBoard0 = (username === bPlayer0 || username === wPlayer1) &&
+      username !== wPlayer0;
 
     this.setState({
       isFlipped0: flipBoard0,
@@ -130,8 +132,8 @@ class GamePage extends Component {
     this.socket.emit('move', newState);
   }
 
-  handleCreateUsername = (username) => {
-    this.socket.emit('createUsername', {
+  handleSetUsername = (username) => {
+    this.socket.emit('setUsername', {
       gameId: this._getGameId(),
       username
     });
@@ -141,16 +143,17 @@ class GamePage extends Component {
   }
 
   handleSelectPlayer = ({ color, boardNum, username }) => {
-    const userKey = `${color}UserId${boardNum}`;
-
-    // TODO: Allow changing of username by using the session id, rather than username,
-    //  for the player user id
-    this.setState({
-      [userKey]: username
-    });
+    const userKey = `${color}Player${boardNum}`;
 
     const gameId = this._getGameId();
-    this.socket.emit('join', { gameId, userKey, username });
+    this.socket.emit('selectPlayer', { gameId, userKey, username });
+  }
+
+  handleDeselectPlayer = ({ color, boardNum }) => {
+    const userKey = `${color}Player${boardNum}`;
+
+    const gameId = this._getGameId();
+    this.socket.emit('deselectPlayer', { gameId, userKey });
   }
 
   handleFlip = (boardNum) => {
@@ -165,8 +168,8 @@ class GamePage extends Component {
       <div>
         <ChessGame
           boardNum={boardNum}
-          wUserId={this.state[`wUserId${boardNum}`]}
-          bUserId={this.state[`bUserId${boardNum}`]}
+          wPlayer={this.state[`wPlayer${boardNum}`]}
+          bPlayer={this.state[`bPlayer${boardNum}`]}
           fen={this.state[`fen${boardNum}`]}
           history={this.state[`history${boardNum}`]}
           wReserve={this.state[`wReserve${boardNum}`]}
@@ -183,22 +186,30 @@ class GamePage extends Component {
   }
 
   _renderPlayerSelectionDialog() {
-    const { wUserId0, bUserId0, wUserId1, bUserId1, username } = this.state;
+    const { wPlayer0, bPlayer0, wPlayer1, bPlayer1, username } = this.state;
 
-    if (wUserId0 && bUserId0 && wUserId1 && bUserId1) {
-      return null;
+    const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
+    const isConnected = _.every(userKeys, key => {
+      return _.get(this.state[key], 'status') === 'CONNECTED';
+    });
+
+    // TODO: If user temporarily leaves page, this will flash
+    //  Fix this with started flag
+    const started = false;
+
+    if (!isConnected && !started) {
+      return (
+        <PlayerSelectionDialog
+          wPlayer0={wPlayer0}
+          bPlayer0={bPlayer0}
+          wPlayer1={wPlayer1}
+          bPlayer1={bPlayer1}
+          username={username}
+          onSetUsername={this.handleSetUsername}
+          onSelectPlayer={this.handleSelectPlayer}
+          onDeselectPlayer={this.handleDeselectPlayer} />
+      );
     }
-
-    return (
-      <PlayerSelectionDialog
-        wUserId0={wUserId0}
-        bUserId0={bUserId0}
-        wUserId1={wUserId1}
-        bUserId1={bUserId1}
-        username={username}
-        onCreateUsername={this.handleCreateUsername}
-        onSelectPlayer={this.handleSelectPlayer} />
-    );
   }
 
   _getGameId() {

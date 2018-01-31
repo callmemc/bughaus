@@ -23,13 +23,15 @@ class PlayerSelection extends Component {
               color="b"
               boardNum={0}
               onSelectPlayer={this.props.onSelectPlayer}
-              playerUsername={this.props.bUserId0}
+              onDeselectPlayer={this.props.onDeselectPlayer}
+              player={this.props.bPlayer0}
               username={username} />
             <PlayerSelectionButton
               color="w"
               boardNum={0}
               onSelectPlayer={this.props.onSelectPlayer}
-              playerUsername={this.props.wUserId0}
+              onDeselectPlayer={this.props.onDeselectPlayer}
+              player={this.props.wPlayer0}
               username={username} />
           </div>
           <div>
@@ -37,13 +39,15 @@ class PlayerSelection extends Component {
               color="w"
               boardNum={1}
               onSelectPlayer={this.props.onSelectPlayer}
-              playerUsername={this.props.wUserId1}
+              onDeselectPlayer={this.props.onDeselectPlayer}
+              player={this.props.wPlayer1}
               username={username} />
             <PlayerSelectionButton
               color="b"
               boardNum={1}
               onSelectPlayer={this.props.onSelectPlayer}
-              playerUsername={this.props.bUserId1}
+              onDeselectPlayer={this.props.onDeselectPlayer}
+              player={this.props.bPlayer1}
               username={username} />
           </div>
         </PlayerSelectionContainer>
@@ -92,10 +96,11 @@ class PlayerSelectionButton extends Component {
   };
 
   render() {
-    const { color, boardNum, playerUsername } = this.props;
+    const { color, boardNum, player } = this.props;
+    const { username, status } = player || {};
     const teamNum = getTeam({ color, boardNum });
     const isSelected = this._isSelected();
-    const isTaken = !!playerUsername;
+    const isTaken = status === 'CONNECTED';
 
     return (
       <PlayerButton
@@ -107,21 +112,26 @@ class PlayerSelectionButton extends Component {
           <UserLabel>
             {getColorLabel(color)}, Team {teamNum}
           </UserLabel>
-          <div>{playerUsername}</div>
+          <div>{username}</div>
+          <div>{status}</div>
         </div>
       </PlayerButton>
     );
   }
 
   handleClick = () => {
-    const username = this._isSelected() ? '' : this.props.username;
-    const { color, boardNum } = this.props;
+    const { color, boardNum, username } = this.props;
 
-    this.props.onSelectPlayer({ color, boardNum, username });
+    if (this._isSelected()) {
+      this.props.onDeselectPlayer({ color, boardNum });
+    } else {
+      this.props.onSelectPlayer({ color, boardNum, username });
+    }
   }
 
   _isSelected() {
-    const { username, playerUsername } = this.props;
+    const { username, player } = this.props;
+    const { username: playerUsername } = player || {};
     return username && playerUsername === username;
   }
 }

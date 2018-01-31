@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node -r @std/esm server.js",
+    "server": "nodemon -r @std/esm server.js",
     "client": "node start-client.js",
     "concurrently": "concurrently"
   },
@@ -25,6 +25,7 @@
     "express-session": "^1.15.6",
     "lodash": "^4.17.4",
     "mongodb": "^3.0.1",
+    "nodemon": "^1.14.11",
     "path": "^0.12.7",
     "socket.io": "^2.0.4"
   },

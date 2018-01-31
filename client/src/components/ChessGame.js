@@ -18,8 +18,8 @@ const Username = styled.div`
 
 class ChessGame extends Component {
   static propTypes = {
-    wUserId: PropTypes.string,
-    bUserId: PropTypes.string,
+    wPlayer: PropTypes.object,
+    bPlayer: PropTypes.object,
     wReserve: PropTypes.string,
     bReserve: PropTypes.string,
     isGameOver: PropTypes.bool,
@@ -29,6 +29,11 @@ class ChessGame extends Component {
     history: PropTypes.object,
     promotedSquares: PropTypes.object,
     isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
+  }
+
+  static defaultProps = {
+    wPlayer: {},
+    bPlayer: {}
   }
 
   constructor(props) {
@@ -87,32 +92,15 @@ class ChessGame extends Component {
       return <div />;
     }
 
-    const { history } = this.props;
-    const { activePiece } = this.state;
-
-    let bottomColor, topColor, bottomId, topId;
-
-    if (this.props.isFlipped) {
-      bottomColor = 'b';
-      topColor = 'w';
-      bottomId = this.props.bUserId;
-      topId = this.props.wUserId;
-    } else {
-      bottomColor = 'w';
-      topColor = 'b';
-      bottomId = this.props.wUserId;
-      topId = this.props.bUserId;
-    }
-
-    let activeSquare;
-    if (activePiece && activePiece.type === 'board') {
-      activeSquare = activePiece.square;
-    }
+    const { history, isFlipped } = this.props;
+    const topColor = isFlipped ? 'w' : 'b';
+    const bottomColor = isFlipped ? 'b' : 'w';
+    const activeSquare = _.get(this.state.activePiece, 'square');
 
     return (
       <div className="ChessGame">
         {this._renderReserve(topColor)}
-        <Username>{topId}</Username>
+        {this._renderUsername(topColor)}
         <div className="ChessGame__play">
           <Chessboard
             boardNum={this.props.boardNum}
@@ -128,8 +116,8 @@ class ChessGame extends Component {
             onDropPieceFromReserve={this.onDropPieceFromReserve}
             onSelectSquare={this.onSelectSquare}
             turn={this.state.turn}
-            wUserId={this.props.wUserId}
-            bUserId={this.props.bUserId}
+            wPlayer={this.props.wPlayer}
+            bPlayer={this.props.bPlayer}
             username={this.props.username} />
           <Sidebar
             bottomColor={bottomColor}
@@ -138,17 +126,24 @@ class ChessGame extends Component {
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
-        <Username>{bottomId}</Username>
+        {this._renderUsername(bottomColor)}
         {this._renderReserve(bottomColor)}
         {this._renderPromotionDialog()}
       </div>
     );
   }
 
+  _renderUsername(color) {
+    const player = this.props[`${color}Player`];
+
+    return <Username>{player.username}</Username>
+  }
+
   _renderReserve(color) {
     const { activePiece, turn } = this.state;
     const { isGameOver, username } = this.props;
-    const isPlayer = this.props[`${color}UserId`] === username;
+    const player = this.props[`${color}Player`];
+    const isPlayer = player.username === username;
 
     let activeIndex;
     if (activePiece && activePiece.type === 'reserve'  && activePiece.color === color) {

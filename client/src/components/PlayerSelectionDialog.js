@@ -8,10 +8,10 @@ const dialogStyle = {textAlign: 'center'};
 
 class PlayerSelectionDialog extends Component {
   static propTypes = {
-    wUserId0: PropTypes.string,
-    bUserId0: PropTypes.string,
-    wUserId1: PropTypes.string,
-    bUserId1: PropTypes.string,
+    wPlayer0: PropTypes.object,
+    bPlayer0: PropTypes.object,
+    wPlayer1: PropTypes.object,
+    bPlayer1: PropTypes.object,
     onSelectPlayer: PropTypes.func.isRequired,
     username: PropTypes.string
   }
@@ -23,18 +23,19 @@ class PlayerSelectionDialog extends Component {
     if (!username) {
       displayedContent = (
         <UsernameInput
-          onClickNext={this.props.onCreateUsername}
+          onClickNext={this.props.onSetUsername}
           username={this.props.username} />
       );
     } else {
       displayedContent = (
         <PlayerSelection
           username={username}
-          wUserId0={this.props.wUserId0}
-          bUserId0={this.props.bUserId0}
-          wUserId1={this.props.wUserId1}
-          bUserId1={this.props.bUserId1}
-          onSelectPlayer={this.props.onSelectPlayer} />
+          wPlayer0={this.props.wPlayer0}
+          bPlayer0={this.props.bPlayer0}
+          wPlayer1={this.props.wPlayer1}
+          bPlayer1={this.props.bPlayer1}
+          onSelectPlayer={this.props.onSelectPlayer}
+          onDeselectPlayer={this.props.onDeselectPlayer} />
       );
     }
 
