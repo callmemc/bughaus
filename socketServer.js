@@ -23,8 +23,10 @@ function connectSocket(socket) {
         return memo;
       }, {});
 
-      IO.to(socketGameId).emit('updateGame', gameData);
-      db.updateGame(socketGameId, gameData);
+      if (!_.isEmpty(gameData)) {
+        IO.to(socketGameId).emit('updateGame', gameData);
+        db.updateGame(socketGameId, gameData);
+      }
     });
   });
 
@@ -38,14 +40,16 @@ function connectSocket(socket) {
 
     db.getGame(socketGameId).then((result) => {
       const gameData = _.reduce(userKeys, (memo, key) => {
-        if (result[key] && result[key].username === username) {
+        if (result[key] && result[key].username === username && result[key].status === 'DISCONNECTED') {
           memo[key] = { username, status: 'CONNECTED' };
         }
         return memo;
       }, {});
 
-      IO.to(socketGameId).emit('updateGame', gameData);
-      db.updateGame(socketGameId, gameData);
+      if (!_.isEmpty(gameData)) {
+        IO.to(socketGameId).emit('updateGame', gameData);
+        db.updateGame(socketGameId, gameData);
+      }
     });
   });
 
