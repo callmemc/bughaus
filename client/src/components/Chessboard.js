@@ -41,8 +41,7 @@ class Chessboard extends Component {
                 const isPrevMove = square === this.props.prevFromSquare ||
                   square === this.props.prevToSquare;
                 const pieceColor = _.get(piece, 'color');
-
-                const isPlayer = pieceColor && this.props[`${pieceColor}Player`].username ===
+                const isPlayer = pieceColor && this._getUsername(pieceColor) ===
                   this.props.username;
                 const hasMovablePiece = this.props.turn === pieceColor && isPlayer;
 
@@ -69,6 +68,10 @@ class Chessboard extends Component {
         </div>
       </div>
     );
+  }
+
+  _getUsername(color) {
+    return _.get(this.props[`${color}Player`], 'username');
   }
 }
 

@@ -133,17 +133,18 @@ class ChessGame extends Component {
     );
   }
 
-  _renderUsername(color) {
-    const player = this.props[`${color}Player`];
+  _getUsername(color) {
+    return _.get(this.props[`${color}Player`], 'username');
+  }
 
-    return <Username>{player.username}</Username>
+  _renderUsername(color) {
+    return <Username>{this._getUsername(color)}</Username>
   }
 
   _renderReserve(color) {
     const { activePiece, turn } = this.state;
     const { isGameOver, username } = this.props;
-    const player = this.props[`${color}Player`];
-    const isPlayer = player.username === username;
+    const isPlayer = this._getUsername(color) === username;
 
     let activeIndex;
     if (activePiece && activePiece.type === 'reserve'  && activePiece.color === color) {

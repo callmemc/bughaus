@@ -88,6 +88,12 @@ const UserLabel = styled.div`
   margin-bottom: 5px;
 `;
 
+const DisconnectedIcon = styled.span`
+  color: red;
+  margin-right: 3px;
+  font-size: 18px;
+`;
+
 class PlayerSelectionButton extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
@@ -112,11 +118,19 @@ class PlayerSelectionButton extends Component {
           <UserLabel>
             {getColorLabel(color)}, Team {teamNum}
           </UserLabel>
-          <div>{username}</div>
-          <div>{status}</div>
+          <div>
+            {this._renderStatus(status)}
+            {username}
+          </div>
         </div>
       </PlayerButton>
     );
+  }
+
+  _renderStatus(status) {
+    if (status === 'DISCONNECTED') {
+      return <DisconnectedIcon>&times;</DisconnectedIcon>;
+    }
   }
 
   handleClick = () => {
