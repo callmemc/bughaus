@@ -7,7 +7,7 @@ import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
-import { isMove } from '../utils';
+import { isMove, getTeam } from '../utils';
 import * as sounds from '../sounds';
 
 const Username = styled.div`
@@ -18,6 +18,7 @@ const Username = styled.div`
 
 class ChessGame extends Component {
   static propTypes = {
+    counters: PropTypes.object,
     wPlayer: PropTypes.object,
     bPlayer: PropTypes.object,
     wReserve: PropTypes.string,
@@ -33,7 +34,8 @@ class ChessGame extends Component {
 
   static defaultProps = {
     wPlayer: {},
-    bPlayer: {}
+    bPlayer: {},
+    counters: {}
   }
 
   constructor(props) {
@@ -92,7 +94,7 @@ class ChessGame extends Component {
       return <div />;
     }
 
-    const { history, isFlipped } = this.props;
+    const { history, isFlipped, isGameOver } = this.props;
     const topColor = isFlipped ? 'w' : 'b';
     const bottomColor = isFlipped ? 'b' : 'w';
     const activeSquare = _.get(this.state.activePiece, 'square');
@@ -109,7 +111,7 @@ class ChessGame extends Component {
             moves={this.state.moves}
             board={this.state.board}
             inCheck={this.state.inCheck}
-            isGameOver={this.props.isGameOver}
+            isGameOver={isGameOver}
             prevFromSquare={_.get(history, 'prevFromSquare')}
             prevToSquare={_.get(history, 'prevToSquare')}
             onDropPiece={this.onDropPiece}
@@ -120,9 +122,11 @@ class ChessGame extends Component {
             bPlayer={this.props.bPlayer}
             username={this.props.username} />
           <Sidebar
+            counters={this.props.counters}
             bottomColor={bottomColor}
             topColor={topColor}
             inCheckmate={this.state.inCheckmate}
+            isGameOver={isGameOver}
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </div>
@@ -138,7 +142,18 @@ class ChessGame extends Component {
   }
 
   _renderUsername(color) {
-    return <Username>{this._getUsername(color)}</Username>
+    const { boardNum, winner } = this.props;
+    let winningText;
+    if (winner) {
+      const isWinningTeam = getTeam({ color, boardNum }) === getTeam(winner);
+      if (isWinningTeam) {
+        winningText = ' is victorious!';
+      }
+    }
+    return <Username>
+      {this._getUsername(color)}
+      <span><i>{winningText}</i></span>
+    </Username>
   }
 
   _renderReserve(color) {

@@ -1,5 +1,6 @@
-import * as db from './db';
 import _ from 'lodash';
+import * as db from './db';
+import * as Timer from './timer';
 
 // TODO: Move this into constants module
 const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
@@ -54,9 +55,16 @@ function connectSocket(socket) {
     });
   });
 
-  socket.on('move', (data) => {
-    socket.to(socketGameId).emit('updateGame', data);
-    db.updateGame(socketGameId, data);
+  socket.on('move', ({ game, boardNum, nextColor }) => {
+    // If checkmate, end timer
+    if (game.winner) {
+      Timer.endTimer(socketGameId);
+    } else {
+      Timer.updateTurn(socketGameId, boardNum, nextColor);
+    }
+
+    socket.to(socketGameId).emit('updateGame', game);
+    db.updateGame(socketGameId, game);
   });
 
   socket.on('setUsername', (data) => {
@@ -81,11 +89,12 @@ function connectSocket(socket) {
         ((userKey === 'bPlayer0' && username) || bPlayer0) &&
         ((userKey === 'bPlayer1' && username) || bPlayer1)) {
 
-        console.log('TODO: Start clock');
-
         // Send flip board data
         IO.to(socketGameId).emit('startGame',
           { wPlayer0, wPlayer1, bPlayer0, bPlayer1 });
+
+        // Start game timer
+        Timer.startTimer(gameId, emitTime, endGame);
       }
     });
 
@@ -106,6 +115,18 @@ function connectSocket(socket) {
     IO.to(socketGameId).emit('updateGame', gameData);
     db.updateGame(gameId, gameData);
   });
+
+  function emitTime({ counters0, counters1 }) {
+    // Write timers to db in case server crashes
+    db.updateGame(socketGameId, { counters0, counters1 });
+    IO.to(socketGameId).emit('timer', { counters0, counters1 });
+  }
+
+  function endGame({ boardNum, color }) {
+    const gameData = { winner: { boardNum, color } };
+    db.updateGame(socketGameId, gameData);
+    IO.to(socketGameId).emit('updateGame', gameData);
+  }
 }
 
 export default {

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
@@ -9,7 +8,6 @@ import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
 import PlayerSelectionDialog from './components/PlayerSelectionDialog';
 import {
-  getTeam,
   getOpposingBoardNum,
   getOpposingColor,
   removeFromReserve
@@ -55,6 +53,7 @@ class GamePage extends Component {
       this.socket = socketClient.initialize(gameId);
       this.socket.on('updateGame', this.updateGameListener);
       this.socket.on('startGame', this.startGameListener);
+      this.socket.on('timer', this.timerListener);
     });
   }
 
@@ -75,11 +74,14 @@ class GamePage extends Component {
             {this._renderChessGame(opposingBoardNum)}
           </div>
         </div>
-        <GameStatus winner={this.state.winner} />
         <PieceDragLayer />
         {this._renderPlayerSelectionDialog()}
       </div>
     );
+  }
+
+  timerListener = (data) => {
+    this.setState(data);
   }
 
   updateGameListener = (data) => {
@@ -129,7 +131,11 @@ class GamePage extends Component {
     }
 
     this.setState(newState);
-    this.socket.emit('move', newState);
+    this.socket.emit('move', {
+      game: newState,
+      boardNum,
+      nextColor: getOpposingColor(moveColor)
+    });
   }
 
   handleSetUsername = (username) => {
@@ -168,6 +174,7 @@ class GamePage extends Component {
       <div>
         <ChessGame
           boardNum={boardNum}
+          counters={this.state[`counters${boardNum}`]}
           wPlayer={this.state[`wPlayer${boardNum}`]}
           bPlayer={this.state[`bPlayer${boardNum}`]}
           fen={this.state[`fen${boardNum}`]}
@@ -179,8 +186,8 @@ class GamePage extends Component {
           onFlip={() => this.handleFlip(boardNum)}
           onMove={data => this.handleMove(boardNum, data)}
           isGameOver={!!this.state.winner}
+          winner={this.state.winner}
           username={this.state.username} />
-        <div>Board {boardNum}</div>
       </div>
     );
   }
@@ -214,25 +221,6 @@ class GamePage extends Component {
 
   _getGameId() {
     return this.props.match.params.gameId;
-  }
-}
-
-class GameStatus extends Component {
-  static propTypes = {
-    winner: PropTypes.object
-  }
-
-  render() {
-    const { winner } = this.props;
-    if (!winner) {
-      return <div />;
-    } else {
-      return (
-        <div className="GameStatus">
-          Winner: Team {getTeam(winner)}!
-        </div>
-      )
-    }
   }
 }
 

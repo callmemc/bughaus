@@ -34,7 +34,8 @@ class HomePage extends Component {
           </IntroText>
           <IntroDesc>
             Here you can play&nbsp;
-            <a href='https://en.wikipedia.org/wiki/Bughouse_chess' target="_blank">bughouse chess</a> with your friends.
+            <a href='https://en.wikipedia.org/wiki/Bughouse_chess' target="_blank" rel="noopener noreferrer">
+              bughouse chess</a> with your friends.
             What are you waiting for?
           </IntroDesc>
         </div>
