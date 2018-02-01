@@ -17,7 +17,7 @@ function connectSocket(socket) {
 
     db.getGame(socketGameId).then((result) => {
       const gameData = _.reduce(userKeys, (memo, key) => {
-        if (result[key] && result[key].username === username) {
+        if (_.get(result[key], 'username') === username) {
           memo[key] = { username, status: 'DISCONNECTED' };
         }
         return memo;
@@ -40,7 +40,8 @@ function connectSocket(socket) {
 
     db.getGame(socketGameId).then((result) => {
       const gameData = _.reduce(userKeys, (memo, key) => {
-        if (result[key] && result[key].username === username && result[key].status === 'DISCONNECTED') {
+        if (_.get(result[key], 'username') === username &&
+          _.get(result[key], 'status') === 'DISCONNECTED') {
           memo[key] = { username, status: 'CONNECTED' };
         }
         return memo;

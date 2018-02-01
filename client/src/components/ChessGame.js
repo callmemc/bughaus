@@ -202,10 +202,16 @@ class ChessGame extends Component {
     const moveResult = this.chess.put({ type, color: this.state.turn }, to);
 
     if (moveResult) {
-      // Have to manually advance turn by modifying fen
+      // Have to manually modify fen
       // TODO: Think about forking/wrapping chess.js library and adding this as a function
       const tokens = this.chess.fen().split(' ');
+
+      // Advance turn
       tokens[1] = (tokens[1] === 'w') ? 'b' : 'w';
+
+      // Clear en passant square
+      tokens[3] = '-';
+
       // Passing in 'force' option to force the load of positions that are invalid
       //  in a normal game of chess, but are valid in bughouse (e.g. 9 pawns)
       this.chess.load(tokens.join(' '), {force: true});
