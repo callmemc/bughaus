@@ -205,6 +205,7 @@ class ChessGame extends Component {
 
   onDropPieceFromReserve = ({ index, type, to, color }) => {
     // Disallow dropping pawns on back row
+    // TODO: Move this to helper
     const rank = to[1];
     if (type === 'p') {
       const isBackRank = (color === 'w' && rank === '8') ||
@@ -215,6 +216,13 @@ class ChessGame extends Component {
     }
 
     const moveResult = this.chess.put({ type, color: this.state.turn }, to);
+
+    // If in check, don’t allow player to drop piece that doesn’t block the check
+    if (this.chess.in_check()) {
+      // Undo move
+      this.chess.remove(to);
+      return;
+    }
 
     if (moveResult) {
       // Have to manually modify fen

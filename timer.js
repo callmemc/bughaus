@@ -1,5 +1,7 @@
 // TODO: create Timer object, which will serve as closure per game, so don't
 //  have to store gameId-keyed objects below
+
+// TODO: Need to reinitiate these if server crashes
 const turns = {};
 const timers = {};
 const DEFAULT_TIME = 600; // 600 sec = 10 min
@@ -27,6 +29,7 @@ export function startTimer(gameId, emitTime, endGame) {
       const turn = currentTurns[boardNum];
 
       // Decrease seconds counter
+      // TODO: Fix undefined error
       const counter = counters[boardNum][turn]--;
 
       // If reaches 0
