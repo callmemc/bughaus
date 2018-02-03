@@ -2,16 +2,16 @@ import _ from 'lodash';
 import * as db from './db';
 import Timer from './timer';
 
-// TODO: Move this into constants module
-const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
-
 let IO;
 
-// See: https://devcenter.heroku.com/articles/websockets#application-architecture
+// TODO: This is necessary because different rooms need to access the same timer
+//  Longer-term solution involves an adapter?
+//  For now, enabled session affinity (https://devcenter.heroku.com/articles/node-websockets#option-2-socket-io-start-the-app)
+//  Also see: https://devcenter.heroku.com/articles/websockets#application-architecture
+const timers = {};
 
 function connectSocket(socket) {
   // Each socket is associated with just one game id
-  let timer;
   const socketGameId = socket.handshake.query.gameId;
 
   if (!socketGameId) {
@@ -26,12 +26,15 @@ function connectSocket(socket) {
   socket.on('move', ({ game, boardNum, nextColor }) => {
     // If checkmate, end timer
     // TODO: Restart timer
+    const timer = timers[socketGameId];
     if (timer) {
       if (game.winner) {
         timer.endTimer();
       } else {
         timer.updateTurn(boardNum, nextColor);
       }
+    } else {
+      console.error('Timer not found');
     }
 
     socket.to(socketGameId).emit('updateGame', game);
@@ -68,7 +71,8 @@ function connectSocket(socket) {
         );
 
         // Start game timer
-        timer = new Timer();
+        const timer = new Timer();
+        timers[socketGameId] = timer;
         timer.startTimer(emitTime, endGame);
       }
     });
@@ -103,8 +107,13 @@ function connectSocket(socket) {
 
   function updateUserStatus(status) {
     const { username } = socket.request.session[socketGameId] || {};
+    if (!username) {
+      return;
+    }
 
     db.getGame(socketGameId).then((result) => {
+      // TODO: Move this into constants module
+      const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
       const gameData = _.reduce(userKeys, (memo, key) => {
         if (_.get(result[key], 'username') === username) {
           memo[key] = { username, status };
