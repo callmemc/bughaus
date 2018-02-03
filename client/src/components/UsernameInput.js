@@ -18,15 +18,8 @@ class UsernameInput extends Component {
     super(props);
 
     this.state = {
-      username: props.username
+      username: ''
     };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // TODO: Figure out if more elegant solution... would Flux help?
-    if (nextProps.username !== this.state.username) {
-      this.setState({ username: nextProps.username });
-    }
   }
 
   render() {
@@ -55,6 +48,10 @@ class UsernameInput extends Component {
   }
 
   handleClickNext = () => {
+    if (!this.state.username) {
+      return;
+    }
+
     this.props.onClickNext(this.state.username);
   }
 }

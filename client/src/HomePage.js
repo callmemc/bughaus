@@ -32,7 +32,7 @@ class HomePage extends Component {
             <a href='https://en.wikipedia.org/wiki/Bughouse_chess' target="_blank" rel="noopener noreferrer">
               Bughouse Chess</a>, a thrilling variation of your favorite board game!
           </IntroDesc>
-          <img src='https://upload.wikimedia.org/wikipedia/commons/c/c9/Bughouse_game_animation.gif' />
+          <img src='https://upload.wikimedia.org/wikipedia/commons/c/c9/Bughouse_game_animation.gif' alt="Bughouse Chess gif" />
         </div>
         <ButtonContainer>
           <FlatButton

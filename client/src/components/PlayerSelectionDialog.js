@@ -23,8 +23,7 @@ class PlayerSelectionDialog extends Component {
     if (!username) {
       displayedContent = (
         <UsernameInput
-          onClickNext={this.props.onSetUsername}
-          username={this.props.username} />
+          onClickNext={this.props.onSetUsername} />
       );
     } else {
       displayedContent = (
