@@ -65,7 +65,12 @@ function connectSocket(socket) {
 
         // Send flip board data
         IO.to(socketGameId).emit('startGame',
-          _.extend({ wPlayer0, wPlayer1, bPlayer0, bPlayer1 }, {
+          _.extend({
+            wPlayer0: _.get(wPlayer0, 'username'),
+            wPlayer1: _.get(wPlayer1, 'username'),
+            bPlayer0: _.get(bPlayer0, 'username'),
+            bPlayer1: _.get(bPlayer1, 'username')
+          }, {
             [userKey]: username
           })
         );
