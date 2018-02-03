@@ -1,21 +1,24 @@
 import _ from 'lodash';
 import * as db from './db';
-import * as Timer from './timer';
+import Timer from './timer';
 
 // TODO: Move this into constants module
 const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
 
 let IO;
 
+// See: https://devcenter.heroku.com/articles/websockets#application-architecture
+
 function connectSocket(socket) {
   // Each socket is associated with just one game id
   // TODO: Make sure this is ok
-  let socketGameId;
+  let socketGameId, timer;
 
   // Update player's game status to disconnected
   socket.on('disconnect', () => {
     const { username } = socket.request.session[socketGameId] || {};
 
+    console.debug('disconnect', socketGameId);
     db.getGame(socketGameId).then((result) => {
       const gameData = _.reduce(userKeys, (memo, key) => {
         if (_.get(result[key], 'username') === username) {
@@ -58,9 +61,9 @@ function connectSocket(socket) {
   socket.on('move', ({ game, boardNum, nextColor }) => {
     // If checkmate, end timer
     if (game.winner) {
-      Timer.endTimer(socketGameId);
+      timer.endTimer();
     } else {
-      Timer.updateTurn(socketGameId, boardNum, nextColor);
+      timer.updateTurn(boardNum, nextColor);
     }
 
     socket.to(socketGameId).emit('updateGame', game);
@@ -94,7 +97,8 @@ function connectSocket(socket) {
           { wPlayer0, wPlayer1, bPlayer0, bPlayer1 });
 
         // Start game timer
-        Timer.startTimer(gameId, emitTime, endGame);
+        timer = new Timer();
+        timer.startTimer(emitTime, endGame);
       }
     });
 
