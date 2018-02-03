@@ -1,10 +1,13 @@
 import React, { Component, PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
+import chessjs from '../chess.js';
 
 import Square from './Square';
 import './Chessboard.css';
-import { isMove } from '../utils';
+import { isMove, getSquare } from '../utils';
+
+const Chess = chessjs.Chess();
 
 class Chessboard extends Component {
   static propTypes = {
@@ -30,14 +33,11 @@ class Chessboard extends Component {
       <div className="Chessboard">
         <RankCoordinates flipped={this.props.flipped} />
         <div className="Chessboard__squares">
-          {_.map(board, (row, rank) =>
-            <div className="Chessboard-row" key={rank}>
-              {_.map(row, (piece, fileIndex) => {
-                const fileNum = this.props.flipped ? 8 - fileIndex : fileIndex + 1;
-                const rankNum = this.props.flipped ? rank + 1 : 8 - rank;
-                const square = String.fromCharCode(96 + fileNum) + rankNum;
-                const squareColor = (fileNum + rankNum) % 2 === 0 ?
-                  'dark' : 'light';
+          {_.map(board, (rank, rankIndex) =>
+            <div className="Chessboard-row" key={rankIndex}>
+              {_.map(rank, (piece, fileIndex) => {
+                const square = getSquare(rankIndex, fileIndex, this.props.flipped);
+                const squareColor = Chess.square_color(square);
                 const isPrevMove = square === this.props.prevFromSquare ||
                   square === this.props.prevToSquare;
                 const pieceColor = _.get(piece, 'color');

@@ -7,7 +7,7 @@ import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
-import { isMove, getTeam } from '../utils';
+import { isMove, getTeam, canBlockCheckmate } from '../utils';
 import * as sounds from '../sounds';
 
 const Username = styled.div`
@@ -317,11 +317,17 @@ class ChessGame extends Component {
       });
     }
 
+    // Check if 'checkmated' player can block checkmate with a dropped piece
+    let isCheckmate = this.chess.in_checkmate();
+    if (isCheckmate) {
+      isCheckmate = !canBlockCheckmate(this.chess);
+    }
+
     this.props.onMove({
       capturedPiece,
       droppedPieceIndex,
       fen: this.chess.fen(),
-      isCheckmate: this.chess.in_checkmate(),
+      isCheckmate,
       moveColor: this.state.turn,
       promotedSquares: this.state.promotedSquares,
       history: {
