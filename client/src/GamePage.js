@@ -3,6 +3,7 @@ import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
+import styled from 'styled-components';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
@@ -12,6 +13,16 @@ import {
   getOpposingColor,
   removeFromReserve
 } from './utils';
+
+const Container = styled.div`
+  margin: auto;
+  display: flex;
+`;
+
+const Boards = styled.div`
+  display: flex;
+  margin: auto;
+`;
 
 class GamePage extends Component {
   constructor() {
@@ -67,16 +78,16 @@ class GamePage extends Component {
     const opposingBoardNum = getOpposingBoardNum(boardNum);
 
     return (
-      <div className="GamePage">
-        <div className="Boards">
+      <Container>
+        <Boards>
           {this._renderChessGame(boardNum)}
           <div className="PartnerGame">
             {this._renderChessGame(opposingBoardNum)}
           </div>
-        </div>
+        </Boards>
         <PieceDragLayer />
         {this._renderPlayerSelectionDialog()}
-      </div>
+      </Container>
     );
   }
 
@@ -171,24 +182,22 @@ class GamePage extends Component {
 
   _renderChessGame(boardNum) {
     return (
-      <div>
-        <ChessGame
-          boardNum={boardNum}
-          counters={this.state[`counters${boardNum}`]}
-          wPlayer={this.state[`wPlayer${boardNum}`]}
-          bPlayer={this.state[`bPlayer${boardNum}`]}
-          fen={this.state[`fen${boardNum}`]}
-          history={this.state[`history${boardNum}`]}
-          wReserve={this.state[`wReserve${boardNum}`]}
-          bReserve={this.state[`bReserve${boardNum}`]}
-          promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
-          isFlipped={this.state[`isFlipped${boardNum}`]}
-          onFlip={() => this.handleFlip(boardNum)}
-          onMove={data => this.handleMove(boardNum, data)}
-          isGameOver={!!this.state.winner}
-          winner={this.state.winner}
-          username={this.state.username} />
-      </div>
+      <ChessGame
+        boardNum={boardNum}
+        counters={this.state[`counters${boardNum}`]}
+        wPlayer={this.state[`wPlayer${boardNum}`]}
+        bPlayer={this.state[`bPlayer${boardNum}`]}
+        fen={this.state[`fen${boardNum}`]}
+        history={this.state[`history${boardNum}`]}
+        wReserve={this.state[`wReserve${boardNum}`]}
+        bReserve={this.state[`bReserve${boardNum}`]}
+        promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
+        isFlipped={this.state[`isFlipped${boardNum}`]}
+        onFlip={() => this.handleFlip(boardNum)}
+        onMove={data => this.handleMove(boardNum, data)}
+        isGameOver={!!this.state.winner}
+        winner={this.state.winner}
+        username={this.state.username} />
     );
   }
 

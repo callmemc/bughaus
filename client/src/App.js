@@ -7,6 +7,18 @@ import HomePage from './HomePage';
 import GamePage from './GamePage';
 const src = require('./img/github.png');
 
+const AppContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  flex: 1;
+`;
+
+const MainContainer = styled.main`
+  flex: 1;
+  display: flex;
+`;
+
 const Title = styled.div`
   a {
     text-decoration: inherit;
@@ -26,7 +38,7 @@ const Logo = styled.img`
 class PrimaryLayout extends Component {
   render() {
     return (
-      <div>
+      <AppContainer>
         <AppBar
           title={<Title><Link to="/">Bughaus</Link></Title>}
           showMenuIconButton={false}
@@ -35,11 +47,11 @@ class PrimaryLayout extends Component {
             <Logo src={src} draggable="false" />
           </LogoContainer>
         </AppBar>
-        <main>
+        <MainContainer>
           <Route path ="/" exact component={HomePage}/>
           <Route path ="/game/:gameId" exact component={GamePage}/>
-        </main>
-      </div>
+        </MainContainer>
+      </AppContainer>
     );
   }
 }

@@ -5,8 +5,8 @@ import FlatButton from 'material-ui/FlatButton';
 import styled from 'styled-components';
 
 const Container = styled.div`
-  margin-top: 50px;
   text-align: center;
+  margin: auto;
 `;
 
 const IntroText = styled.p`
@@ -20,7 +20,7 @@ const IntroDesc = styled.p`
 `;
 
 const ButtonContainer = styled.div`
-  margin-top: 30px;
+  margin: 30px 0 50px;
 `;
 
 class HomePage extends Component {

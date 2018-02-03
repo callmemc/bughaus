@@ -10,6 +10,10 @@ import Reserve from './Reserve';
 import { isMove, getTeam, canBlockCheckmate } from '../utils';
 import * as sounds from '../sounds';
 
+const PlayContainer = styled.div`
+  display: flex;
+`;
+
 const Username = styled.div`
   height: 18px;
   text-align: left;
@@ -103,7 +107,7 @@ class ChessGame extends Component {
       <div className="ChessGame">
         {this._renderReserve(topColor)}
         {this._renderUsername(topColor)}
-        <div className="ChessGame__play">
+        <PlayContainer>
           <Chessboard
             boardNum={this.props.boardNum}
             activeSquare={activeSquare}
@@ -129,7 +133,7 @@ class ChessGame extends Component {
             isGameOver={isGameOver}
             onFlip={this.onFlip}
             turn={this.state.turn} />
-        </div>
+        </PlayContainer>
         {this._renderUsername(bottomColor)}
         {this._renderReserve(bottomColor)}
         {this._renderPromotionDialog()}
