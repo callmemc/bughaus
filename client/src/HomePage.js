@@ -9,18 +9,15 @@ const Container = styled.div`
   margin: auto;
 `;
 
-const IntroText = styled.p`
-  font-size: 1.2rem;
-`;
-
 const IntroDesc = styled.p`
   a {
     text-decoration: inherit;
+    font-style: italic;
   }
 `;
 
 const ButtonContainer = styled.div`
-  margin: 30px 0 50px;
+  margin: 20px 0 50px;
 `;
 
 class HomePage extends Component {
@@ -29,20 +26,18 @@ class HomePage extends Component {
     return (
       <Container>
         <div>
-          <IntroText>
-            Welcome to <b>Bughaus</b>!
-          </IntroText>
+          <p>Four players.</p> <p>Two boards.</p> <p>One objective: <i>Checkmate.</i></p>
           <IntroDesc>
-            Here you can play&nbsp;
+            This is&nbsp;
             <a href='https://en.wikipedia.org/wiki/Bughouse_chess' target="_blank" rel="noopener noreferrer">
-              bughouse chess</a> with your friends.
-            What are you waiting for?
+              Bughouse Chess</a>, a thrilling variation of your favorite board game!
           </IntroDesc>
+          <img src='https://upload.wikimedia.org/wikipedia/commons/c/c9/Bughouse_game_animation.gif' />
         </div>
         <ButtonContainer>
           <FlatButton
             className="GameButton"
-            label="Create a game!"
+            label="Create a game"
             backgroundColor="#a4c639"
             hoverColor="#8AA62F"
             labelStyle={{color: 'white', fontSize: '20px'}}
