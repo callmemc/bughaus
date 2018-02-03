@@ -52,6 +52,10 @@ export function endTimer(gameId) {
 }
 
 export function updateTurn(gameId, boardNum, nextTurn) {
-  // TODO: Fix undefined error
+  // TODO: Handle this case, which is when server has crashed and in-memory data
+  //  for timers is lost
+  if (!turns[gameId]) {
+    return;
+  }
   turns[gameId][boardNum] = nextTurn;
 }
