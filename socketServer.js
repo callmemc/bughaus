@@ -11,59 +11,27 @@ let IO;
 
 function connectSocket(socket) {
   // Each socket is associated with just one game id
-  // TODO: Make sure this is ok
-  let socketGameId, timer;
+  let timer;
+  const socketGameId = socket.handshake.query.gameId;
 
-  // Update player's game status to disconnected
-  socket.on('disconnect', () => {
-    const { username } = socket.request.session[socketGameId] || {};
+  if (!socketGameId) {
+    return;
+  }
 
-    console.debug('disconnect', socketGameId);
-    db.getGame(socketGameId).then((result) => {
-      const gameData = _.reduce(userKeys, (memo, key) => {
-        if (_.get(result[key], 'username') === username) {
-          memo[key] = { username, status: 'DISCONNECTED' };
-        }
-        return memo;
-      }, {});
+  socket.join(socketGameId);
 
-      if (!_.isEmpty(gameData)) {
-        IO.to(socketGameId).emit('updateGame', gameData);
-        db.updateGame(socketGameId, gameData);
-      }
-    });
-  });
-
-  // Update player's game status to connected
-  socket.on('watch', gameId => {
-    socketGameId = gameId;
-    socket.join(gameId);
-
-    // TODO: Reuse code with 'disconnect'
-    const { username } = socket.request.session[socketGameId] || {};
-
-    db.getGame(socketGameId).then((result) => {
-      const gameData = _.reduce(userKeys, (memo, key) => {
-        if (_.get(result[key], 'username') === username &&
-          _.get(result[key], 'status') === 'DISCONNECTED') {
-          memo[key] = { username, status: 'CONNECTED' };
-        }
-        return memo;
-      }, {});
-
-      if (!_.isEmpty(gameData)) {
-        IO.to(socketGameId).emit('updateGame', gameData);
-        db.updateGame(socketGameId, gameData);
-      }
-    });
-  });
+  // If player is found, update player's game status to connected
+  updateUserStatus('CONNECTED');
 
   socket.on('move', ({ game, boardNum, nextColor }) => {
     // If checkmate, end timer
-    if (game.winner) {
-      timer.endTimer();
-    } else {
-      timer.updateTurn(boardNum, nextColor);
+    // TODO: Restart timer
+    if (timer) {
+      if (game.winner) {
+        timer.endTimer();
+      } else {
+        timer.updateTurn(boardNum, nextColor);
+      }
     }
 
     socket.to(socketGameId).emit('updateGame', game);
@@ -94,7 +62,10 @@ function connectSocket(socket) {
 
         // Send flip board data
         IO.to(socketGameId).emit('startGame',
-          { wPlayer0, wPlayer1, bPlayer0, bPlayer1 });
+          _.extend({ wPlayer0, wPlayer1, bPlayer0, bPlayer1 }, {
+            [userKey]: username
+          })
+        );
 
         // Start game timer
         timer = new Timer();
@@ -119,6 +90,34 @@ function connectSocket(socket) {
     IO.to(socketGameId).emit('updateGame', gameData);
     db.updateGame(gameId, gameData);
   });
+
+  // Update player's game status to disconnected
+  socket.on('disconnect', () => {
+    console.debug('disconnect', socketGameId);
+    if (!socketGameId) {
+      return;
+    }
+
+    updateUserStatus('DISCONNECTED');
+  });
+
+  function updateUserStatus(status) {
+    const { username } = socket.request.session[socketGameId] || {};
+
+    db.getGame(socketGameId).then((result) => {
+      const gameData = _.reduce(userKeys, (memo, key) => {
+        if (_.get(result[key], 'username') === username) {
+          memo[key] = { username, status };
+        }
+        return memo;
+      }, {});
+
+      if (!_.isEmpty(gameData)) {
+        IO.to(socketGameId).emit('updateGame', gameData);
+        db.updateGame(socketGameId, gameData);
+      }
+    });
+  }
 
   function emitTime({ counters0, counters1 }) {
     // Write timers to db in case server crashes
