@@ -52,5 +52,6 @@ export function endTimer(gameId) {
 }
 
 export function updateTurn(gameId, boardNum, nextTurn) {
+  // TODO: Fix undefined error
   turns[gameId][boardNum] = nextTurn;
 }

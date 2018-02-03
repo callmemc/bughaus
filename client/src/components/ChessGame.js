@@ -205,14 +205,9 @@ class ChessGame extends Component {
 
   onDropPieceFromReserve = ({ index, type, to, color }) => {
     // Disallow dropping pawns on back row
-    // TODO: Move this to helper
     const rank = to[1];
-    if (type === 'p') {
-      const isBackRank = (color === 'w' && rank === '8') ||
-        (color === 'b' && rank === '1');
-      if (isBackRank) {
-        return;
-      }
+    if (type === 'p' && (rank === '8' || rank === '1')) {
+      return;
     }
 
     const moveResult = this.chess.put({ type, color: this.state.turn }, to);
