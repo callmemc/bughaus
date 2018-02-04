@@ -13,6 +13,7 @@ import {
   getOpposingColor,
   removeFromReserve
 } from './utils';
+import * as sounds from './sounds';
 
 const Container = styled.div`
   margin: auto;
@@ -65,6 +66,7 @@ class GamePage extends Component {
       this.socket.on('updateGame', this.updateGameListener);
       this.socket.on('startGame', this.startGameListener);
       this.socket.on('timer', this.timerListener);
+      this.socket.on('updateGameFromMove', this.updateFromMoveListener);
     });
   }
 
@@ -114,6 +116,12 @@ class GamePage extends Component {
     });
   }
 
+  updateFromMoveListener = ({ game, isCapture }) => {
+    this.setState(game);
+
+    this._playMoveSound({ isCapture });
+  }
+
   handleMove = (boardNum, data) => {
     const { fen, promotedSquares, history,
       capturedPiece, droppedPieceIndex, moveColor, isCheckmate } = data;
@@ -135,6 +143,8 @@ class GamePage extends Component {
       newState[reserveKey] = removeFromReserve(this.state[reserveKey], droppedPieceIndex);
     }
 
+    this._playMoveSound({ isCapture: !!capturedPiece });
+
     // Note: Winner is stored, rather than calculated from fen, b/c players can lose for
     //  other reasons (e.g. time running out)
     if (isCheckmate) {
@@ -145,7 +155,8 @@ class GamePage extends Component {
     this.socket.emit('move', {
       game: newState,
       boardNum,
-      nextColor: getOpposingColor(moveColor)
+      nextColor: getOpposingColor(moveColor),
+      isCapture: !!capturedPiece
     });
   }
 
@@ -225,6 +236,14 @@ class GamePage extends Component {
           onSelectPlayer={this.handleSelectPlayer}
           onDeselectPlayer={this.handleDeselectPlayer} />
       );
+    }
+  }
+
+  _playMoveSound({ isCapture }) {
+    if (isCapture) {
+      sounds.playCaptureSound();
+    } else {
+      sounds.playMoveSound();
     }
   }
 
