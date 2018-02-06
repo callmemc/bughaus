@@ -182,8 +182,9 @@ class ChessGame extends Component {
       activeIndex = activePiece.index;
     }
 
-    const queue = this.state[`current${color.toUpperCase()}Reserve`] ||
-      this.props[`${color}Reserve`];
+    const currentReserve = this.state[`current${color.toUpperCase()}Reserve`];
+    const queue = currentReserve === undefined ?
+      this.props[`${color}Reserve`] : currentReserve;
 
     return <Reserve
       activeIndex={activeIndex}
