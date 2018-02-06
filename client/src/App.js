@@ -5,6 +5,7 @@ import AppBar from 'material-ui/AppBar';
 import styled from 'styled-components';
 import HomePage from './HomePage';
 import GamePage from './GamePage';
+import './style.css';
 const src = require('./img/github.png');
 
 const AppContainer = styled.div`

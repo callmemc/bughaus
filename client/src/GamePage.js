@@ -123,26 +123,64 @@ class GamePage extends Component {
   }
 
   handleMove = (boardNum, data) => {
-    const { fen, promotedSquares, history,
-      capturedPiece, droppedPieceIndex, moveColor, isCheckmate } = data;
+    const { fen, promotedSquares, capturedPiece, droppedPieceIndex, droppedPiece,
+      moveColor, isCheckmate, move } = data;
     const newState = {
       [`fen${boardNum}`]: fen,
-      [`promotedSquares${boardNum}`]: promotedSquares,
-      [`history${boardNum}`]: history
+      [`promotedSquares${boardNum}`]: promotedSquares
     };
 
+    // Update reserve
     if (capturedPiece) {
       // Add piece to partner's reserve
       const capturedColor = getOpposingColor(moveColor);
       const otherBoardNum = getOpposingBoardNum(boardNum);
       const reserveKey = `${capturedColor}Reserve${otherBoardNum}`;
-      newState[reserveKey] = this.state[reserveKey] + capturedPiece;
+      const newReserve = this.state[reserveKey] + capturedPiece;
+      newState[reserveKey] = newReserve;
+
+      // Update partner's history's reserve
+      // TODO: Can this be prettied up?
+      const lastMove = _.last(this.state[`history${otherBoardNum}`]);
+      lastMove[`${capturedColor}Reserve`] = newReserve;
+      newState[`history${otherBoardNum}`] = [ ...this.state[`history${otherBoardNum}`] ];
     } else if (droppedPieceIndex !== undefined) {
       // Remove piece from player's reserve
       const reserveKey = `${moveColor}Reserve${boardNum}`;
       newState[reserveKey] = removeFromReserve(this.state[reserveKey], droppedPieceIndex);
     }
 
+    // Push move to history
+    let reserveHistory;
+    // TODO: Can this be prettied up?
+    if (droppedPieceIndex !== undefined) {
+      const opposingColor = getOpposingColor(moveColor);
+      reserveHistory = {
+        [`${moveColor}Reserve`]: newState[`${moveColor}Reserve${boardNum}`],
+        [`${opposingColor}Reserve`]: this.state[`${opposingColor}Reserve${boardNum}`]
+      };
+    } else {
+      reserveHistory = {
+        wReserve: this.state[`wReserve${boardNum}`],
+        bReserve: this.state[`bReserve${boardNum}`]
+      };
+    }
+
+    const history = this.state[`history${boardNum}`] || [];
+    let historyMove = {
+      ...move,
+      ...reserveHistory,
+      fen
+    };
+    if (droppedPieceIndex !== undefined) {
+      historyMove = {
+        ...historyMove,
+        piece: droppedPiece
+      }
+    }
+    newState[`history${boardNum}`] = history.concat(historyMove);
+
+    // Play sound
     this._playMoveSound({ isCapture: !!capturedPiece });
 
     // Note: Winner is stored, rather than calculated from fen, b/c players can lose for

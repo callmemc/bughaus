@@ -3,12 +3,64 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import styled from 'styled-components';
 import _ from 'lodash';
+import { grey700, blue700 } from 'material-ui/styles/colors';
+
+import FontIcon from 'material-ui/FontIcon';
+import FlipIcon from 'material-ui/svg-icons/action/cached';
+
+const SidebarContainer = styled.div`
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  width: 100px;
+  margin-bottom: 14px;
+  height: 382px;
+`;
+
+const MoveContent = styled.div`
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+const MoveControls = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const smallIconStyles = {
+  fontSize: '14px'
+};
+
+const iconStyles = {
+  fontSize: '16px'
+};
+
+const IconContainer = styled.button`
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+
+  &:hover {
+    .moveIcon {
+      color: ${blue700} !important;
+    }
+
+    svg {
+      fill: ${blue700} !important;
+    }
+  }
+`;
 
 class Sidebar extends Component {
   static propTypes = {
     counters: PropTypes.object.isRequired,
     bottomColor: PropTypes.oneOf(['w', 'b']),
     topColor: PropTypes.oneOf(['w', 'b']),
+    history: PropTypes.array.isRequired,
     inCheckmate: PropTypes.bool,
     isGameOver: PropTypes.bool,
     turn: PropTypes.string
@@ -20,13 +72,46 @@ class Sidebar extends Component {
 
   render() {
     return (
-      <div className="Sidebar">
+      <SidebarContainer>
         {this._renderPlayerBox(this.props.topColor)}
-        <button className="Sidebar__flip-button" onClick={this.props.onFlip}>
-          Flip
-        </button>
+        <MoveContent>
+          <MoveControls>
+            <IconContainer onClick={this.props.onFlip}>
+              <FlipIcon
+                color={grey700}
+                style={{width: '18px'}} />
+            </IconContainer>
+            <IconContainer onClick={this.props.onFirstMove}>
+              <FontIcon
+                className="icon-first moveIcon"
+                color={grey700}
+                style={smallIconStyles} />
+            </IconContainer>
+            <IconContainer onClick={this.props.onPrevMove}>
+              <FontIcon
+                className="icon-previous2 moveIcon"
+                color={grey700}
+                style={iconStyles} />
+            </IconContainer>
+            <IconContainer onClick={this.props.onNextMove}>
+              <FontIcon
+                className="icon-next2 moveIcon"
+                color={grey700}
+                style={iconStyles} />
+            </IconContainer>
+            <IconContainer onClick={this.props.onLastMove}>
+              <FontIcon
+                className="icon-last moveIcon"
+                color={grey700}
+                style={smallIconStyles} />
+            </IconContainer>
+          </MoveControls>
+          <MoveHistory
+            currentMoveIndex={this.props.currentMoveIndex}
+            history={this.props.history} />
+        </MoveContent>
         {this._renderPlayerBox(this.props.bottomColor)}
-      </div>
+      </SidebarContainer>
     );
   }
 
@@ -41,13 +126,11 @@ class Sidebar extends Component {
   }
 }
 
-const Timer = styled.span`
+const Timer = styled.div`
   font-size: 24px;
   height: 40px;
   width: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
 
   ${props => props.isTurn && `
     background-color: #feef88;
@@ -56,6 +139,10 @@ const Timer = styled.span`
   ${props => props.isTimedOut && `
     background-color: #eFAAAA;
   `}
+`;
+
+const Time = styled.div`
+  margin: auto;
 `;
 
 class PlayerBox extends Component {
@@ -71,9 +158,69 @@ class PlayerBox extends Component {
     const formattedTime = counter === undefined ? '-:--' : moment.utc(counter*1000).format('m:ss');
 
     return <Timer isTurn={this.props.isTurn} isTimedOut={counter === 0}>
-      {formattedTime}
+      <Time>{formattedTime}</Time>
     </Timer>;
   }
+}
+
+const MoveHistoryContainer = styled.div`
+  overflow: scroll;
+`;
+
+const Move = styled.div`
+  display: flex;
+  padding: 2px 0;
+`;
+
+const MoveNumber = styled.div`
+  margin: 2px 8px 0 2px;
+  font-size: 0.65rem;
+  width: 15px;
+  text-align: right;
+`;
+
+function MoveHistory(props) {
+  const historyArr = props.history;
+
+  let rows = [];
+
+  // Note: First move in array is initial position
+  for (let i = 1, moveNum = 1; i < historyArr.length; i+=2, moveNum++) {
+    rows.push(
+      <Move key={i}>
+        <MoveNumber>{moveNum}</MoveNumber>
+        <HalfMove
+          highlight={props.currentMoveIndex === i}
+          move={historyArr[i]} />
+        <HalfMove
+          highlight={props.currentMoveIndex === i + 1}
+          move={historyArr[i +1]} />
+      </Move>
+    );
+  }
+
+  return (
+    <MoveHistoryContainer>
+      {rows}
+    </MoveHistoryContainer>
+  );
+}
+
+const MoveContainer = styled.div`
+  flex: 1;
+  ${props => props.highlight && `
+    color: red;
+  `}
+`;
+
+function HalfMove(props) {
+  if (!props.move) {
+    return <MoveContainer />
+  }
+
+  return <MoveContainer highlight={props.highlight}>
+    {props.move.notation}
+  </MoveContainer>;
 }
 
 export default Sidebar;

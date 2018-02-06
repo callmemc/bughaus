@@ -63,3 +63,28 @@ export function canBlockCheckmate(chess) {
     });
   });
 }
+
+// TODO: isCheck --> +
+export function getMoveNotation({ piece, from, to, isCaptureMove, droppedPiece }) {
+  let notation = to;
+  if (isCaptureMove) {
+    notation = 'x' + notation;
+
+    if (piece === 'p') {
+      notation = from[0] + notation;
+    }
+  }
+
+  if (piece && piece !== 'p') {
+    notation = piece.toUpperCase() + notation;
+  }
+
+  if (droppedPiece) {
+    notation = notation + '*';
+
+    if (droppedPiece !== 'p') {
+      notation = droppedPiece.toUpperCase() + notation;
+    }
+  }
+  return notation;
+}

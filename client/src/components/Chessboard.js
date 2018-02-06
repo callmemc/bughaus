@@ -40,10 +40,12 @@ class Chessboard extends Component {
                 const squareColor = Chess.square_color(square);
                 const isPrevMove = square === this.props.prevFromSquare ||
                   square === this.props.prevToSquare;
-                const pieceColor = _.get(piece, 'color');
+                const { color: pieceColor, type: pieceType} = piece || {};
                 const isPlayer = pieceColor && this._getUsername(pieceColor) ===
                   this.props.username;
-                const hasMovablePiece = this.props.turn === pieceColor && isPlayer;
+                const isTurn = this.props.turn === pieceColor;
+                const hasMovablePiece = isTurn && isPlayer;
+                const isChecked = this.props.inCheck && isTurn && pieceType === 'k';
 
                 return <Square
                   key={fileIndex}
@@ -52,12 +54,12 @@ class Chessboard extends Component {
                   isActive={square === this.props.activeSquare}
                   isPrevMove={isPrevMove}
                   isValidMove={isMove(square, moves)}
-                  inCheck={this.props.inCheck}
+                  isChecked={isChecked}
                   isGameOver={this.props.isGameOver}
                   onDropPiece={this.props.onDropPiece}
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
                   onSelect={this.props.onSelectSquare}
-                  pieceType={_.get(piece, 'type')}
+                  pieceType={pieceType}
                   pieceColor={pieceColor}
                   square={square}
                   squareColor={squareColor} />

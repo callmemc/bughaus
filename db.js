@@ -29,13 +29,20 @@ export function connectClient() {
 }
 
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const INITIAL_POSITION = {
+  fen: INITIAL_FEN,
+  wReserve: '',
+  bReserve: ''
+};
 const INITIAL_GAME = {
   fen0: INITIAL_FEN,
   wReserve0: '',
   bReserve0: '',
+  history0: [INITIAL_POSITION],
   fen1: INITIAL_FEN,
   wReserve1: '',
-  bReserve1: ''
+  bReserve1: '',
+  history1: [INITIAL_POSITION]
 };
 
 export function createGame(gameId) {

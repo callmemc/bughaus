@@ -10,20 +10,15 @@ class Square extends Component {
     isPrevMove: PropTypes.bool,
     isValidMove: PropTypes.bool,
     isActive: PropTypes.bool,
-    inCheck: PropTypes.bool,
+    isChecked: PropTypes.bool,
     isGameOver: PropTypes.bool
   }
 
   render() {
-    // TODO: move this to higher props
-    const isCheckedKing = this.props.inCheck &&
-      this.props.pieceType === 'k' &&
-      this.props.hasMovablePiece;
-
     return this.props.connectDropTarget(
       <div className={classNames(`Chessboard-square Chessboard-square--${this.props.squareColor}`,
         {
-          'Chessboard-square--checked': isCheckedKing,
+          'Chessboard-square--checked': this.props.isChecked,
           'Chessboard-square--active': this.props.isActive,
           'Chessboard-square--previous': this.props.isPrevMove,
           'Chessboard-square--valid': this.props.isValidMove })}
