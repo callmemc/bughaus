@@ -55,6 +55,23 @@ const IconContainer = styled.button`
   }
 `;
 
+const Timer = styled.div`
+  font-size: 24px;
+  height: 40px;
+  width: 100%;
+  display: flex;
+  ${props => props.isTurn && `
+    background-color: #feef88;
+  `}
+  ${props => props.isTimedOut && `
+    background-color: #eFAAAA;
+  `}
+`;
+
+const Time = styled.div`
+  margin: auto;
+`;
+
 class Sidebar extends Component {
   static propTypes = {
     counters: PropTypes.object.isRequired,
@@ -107,6 +124,7 @@ class Sidebar extends Component {
             </IconContainer>
           </MoveControls>
           <MoveHistory
+            onSelectMove={this.props.onSelectMove}
             currentMoveIndex={this.props.currentMoveIndex}
             history={this.props.history} />
         </MoveContent>
@@ -116,50 +134,16 @@ class Sidebar extends Component {
   }
 
   _renderPlayerBox(color) {
+    const isTurn = color === this.props.turn && !this.props.isGameOver;
+    const counter = _.get(this.props.counters, color)
+    const formattedTime = counter === undefined ? '-:--' :
+      moment.utc(counter*1000).format('m:ss');
+
     return (
-      <PlayerBox
-        color={color}
-        counter={_.get(this.props.counters, color)}
-        inCheckmate={this.props.inCheckmate}
-        isTurn={color === this.props.turn && !this.props.isGameOver} />
+      <Timer isTurn={isTurn} isTimedOut={counter === 0}>
+        <Time>{formattedTime}</Time>
+      </Timer>
     );
-  }
-}
-
-const Timer = styled.div`
-  font-size: 24px;
-  height: 40px;
-  width: 100%;
-  display: flex;
-
-  ${props => props.isTurn && `
-    background-color: #feef88;
-  `}
-
-  ${props => props.isTimedOut && `
-    background-color: #eFAAAA;
-  `}
-`;
-
-const Time = styled.div`
-  margin: auto;
-`;
-
-class PlayerBox extends Component {
-  static propTypes = {
-    // TODO: Rename all props to time
-    counter: PropTypes.number,
-    isTurn: PropTypes.bool
-  }
-
-  render() {
-    const { counter } = this.props;
-
-    const formattedTime = counter === undefined ? '-:--' : moment.utc(counter*1000).format('m:ss');
-
-    return <Timer isTurn={this.props.isTurn} isTimedOut={counter === 0}>
-      <Time>{formattedTime}</Time>
-    </Timer>;
   }
 }
 
@@ -181,9 +165,7 @@ const MoveNumber = styled.div`
 
 function MoveHistory(props) {
   const historyArr = props.history;
-
   let rows = [];
-
   // Note: First move in array is initial position
   for (let i = 1, moveNum = 1; i < historyArr.length; i+=2, moveNum++) {
     rows.push(
@@ -191,10 +173,12 @@ function MoveHistory(props) {
         <MoveNumber>{moveNum}</MoveNumber>
         <HalfMove
           highlight={props.currentMoveIndex === i}
-          move={historyArr[i]} />
+          move={historyArr[i]}
+          onClick={() => props.onSelectMove(i)} />
         <HalfMove
-          highlight={props.currentMoveIndex === i + 1}
-          move={historyArr[i +1]} />
+          highlight={props.currentMoveIndex === i+1}
+          move={historyArr[i+1]}
+          onClick={() => props.onSelectMove(i+1)} />
       </Move>
     );
   }
@@ -211,6 +195,12 @@ const MoveContainer = styled.div`
   ${props => props.highlight && `
     color: red;
   `}
+  ${props => props.selectable && `
+    cursor: pointer;
+    &:hover {
+      color: ${blue700};
+    }
+  `}
 `;
 
 function HalfMove(props) {
@@ -218,9 +208,14 @@ function HalfMove(props) {
     return <MoveContainer />
   }
 
-  return <MoveContainer highlight={props.highlight}>
-    {props.move.notation}
-  </MoveContainer>;
+  return (
+    <MoveContainer
+      selectable
+      highlight={props.highlight}
+      onClick={props.onClick}>
+      {props.move.notation}
+    </MoveContainer>
+  );
 }
 
 export default Sidebar;

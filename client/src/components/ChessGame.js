@@ -143,6 +143,7 @@ class ChessGame extends Component {
             onPrevMove={this.handlePrevMove}
             onNextMove={this.handleNextMove}
             onLastMove={this.handleLastMove}
+            onSelectMove={this.handleSelectMove}
             onFlip={this.onFlip}
             turn={this.state.turn} />
         </PlayContainer>
@@ -413,6 +414,11 @@ class ChessGame extends Component {
       currentWBReserve: undefined
     });
     this._updateJustBoard();
+  }
+
+  handleSelectMove = (index) => {
+    const distance = this._getCurrentMoveIndex() - index;
+    this._handleChangeMove(distance);
   }
 
   _handleChangeMove(distance) {
