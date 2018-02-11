@@ -165,14 +165,14 @@ class GamePage extends Component {
     });
   }
 
-  _getUpdatedPiecePositions(boardNum, { move, droppedPiece, capturedPiece, moveColor }) {
+  _getUpdatedPiecePositions(boardNum, { move, droppedPiece, capturedPiece, capturedSquare, moveColor }) {
     const history = this.state[`history${boardNum}`];
     let piecePositions = _.last(history).piecePositions;
 
     // Update taken piece
     // Note: Keeping null piecePositions so element positions don't get moved... this is ugly
     if (capturedPiece) {
-      const takenPieceIndex = piecePositions.findIndex(piece => piece && piece.square === move.to);
+      const takenPieceIndex = piecePositions.findIndex(piece => piece && piece.square === capturedSquare);
       piecePositions = Immutable.set(piecePositions, takenPieceIndex, null);
     }
 

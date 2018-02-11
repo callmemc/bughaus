@@ -207,9 +207,18 @@ class ChessGame extends Component {
     }
 
     const moveResult = this.chess.move({ from, to });
+
+    // Square of pawn that was captured in enpassant is last move
+    const capturedSquare = moveResult.flags === 'e' ?
+      _.last(this.props.history).to : to;
     // chess.move() returns null if move was invalid
     if (moveResult) {
-      this._makeMove({ capturedPiece: moveResult.captured, from, to, piece: moveResult.piece });
+      this._makeMove({
+        from, to,
+        capturedPiece: moveResult.captured,
+        piece: moveResult.piece,
+        capturedSquare
+      });
     }
   }
 
@@ -313,7 +322,7 @@ class ChessGame extends Component {
     // }
   }
 
-  _makeMove({ capturedPiece, droppedPieceIndex, droppedPiece, from, to, isPromotion, piece }) {
+  _makeMove({ capturedPiece, capturedSquare, droppedPieceIndex, droppedPiece, from, to, isPromotion, piece }) {
     // If move captures a promoted piece, turn it back to pawn
     if (capturedPiece && this.state.promotedSquares[to]) {
       delete this.state.promotedSquares[to];
@@ -340,6 +349,7 @@ class ChessGame extends Component {
 
     this.props.onMove({
       capturedPiece,
+      capturedSquare,
       droppedPieceIndex,
       droppedPiece,
       fen: this.chess.fen(),
