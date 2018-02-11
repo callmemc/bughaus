@@ -67,7 +67,7 @@ const INITIAL_POSITION = {
   fen: INITIAL_FEN,
   wReserve: '',
   bReserve: '',
-  pieces: INITIAL_PIECES
+  piecePositions: INITIAL_PIECES
 };
 const INITIAL_GAME = {
   fen0: INITIAL_FEN,

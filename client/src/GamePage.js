@@ -4,6 +4,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import styled from 'styled-components';
+import Immutable from 'seamless-immutable';
 import socketClient from './socketClient';
 import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
@@ -53,6 +54,7 @@ class GamePage extends Component {
         username === _.get(wPlayer1, 'username')) &&
           username !== _.get(wPlayer0, 'username');
 
+      // TODO: Use a shared method
       this.updateGameListener({
         ...result,
         isFlipped0: flipBoard0,
@@ -97,9 +99,13 @@ class GamePage extends Component {
     this.setState(data);
   }
 
-  updateGameListener = (data) => {
+  updateGameListener = (game) => {
     // TODO: Think about restructuring this so not blindly writing all params to state
-    this.setState(data);
+    this.setState({
+      ...game,
+      ...game.history0 && { history0: Immutable(game.history0) },
+      ...game.history1 && { history1: Immutable(game.history1) }
+    });
   }
 
   startGameListener = (data) => {
@@ -117,35 +123,28 @@ class GamePage extends Component {
   }
 
   updateFromMoveListener = ({ game, isCapture }) => {
-    this.setState(game);
+    this.setState({
+      ...game,
+      ...game.history0 && { history0: Immutable(game.history0) },
+      ...game.history1 && { history1: Immutable(game.history1) }
+    });
 
     this._playMoveSound({ isCapture });
   }
 
   handleMove = (boardNum, data) => {
     const { promotedSquares, capturedPiece, moveColor, isCheckmate } = data;
-    // Add move to this board's history
-    const pieces = this._getUpdatedPieces(boardNum, data);
+    const piecePositions = this._getUpdatedPiecePositions(boardNum, data);
+    const otherBoardNum = getOpposingBoardNum(boardNum);
 
     const newState = {
       [`promotedSquares${boardNum}`]: promotedSquares,
-      [`history${boardNum}`]: this._getUpdatedHistory(boardNum, data, pieces)
+      // Add move to this board's history
+      [`history${boardNum}`]: this._getUpdatedHistory(boardNum, data, piecePositions),
+      // Add piece to partner's reserve in last move
+      ...capturedPiece &&
+        { [`history${otherBoardNum}`]: this._getCapturedHistory(otherBoardNum, data) }
     };
-
-    // Update other board's history by adding captured piece to last move's reserve
-    if (capturedPiece) {
-      // Add piece to partner's reserve in history
-      const capturedColor = getOpposingColor(moveColor);
-      const otherBoardNum = getOpposingBoardNum(boardNum);
-
-      // Update last move's reserve property
-      // TODO: Figure out how to do this fully immutable
-      const lastMove = _.last(this.state[`history${otherBoardNum}`]);
-      // Note: This assignment is mutable. It only works bc we're actually trying to modify
-      //   this object, which does not have any shared references
-      lastMove[`${capturedColor}Reserve`] = lastMove[`${capturedColor}Reserve`] + capturedPiece;
-      newState[`history${otherBoardNum}`] = [ ...this.state[`history${otherBoardNum}`] ];
-    }
 
     // Play sound
     this._playMoveSound({ isCapture: !!capturedPiece });
@@ -166,31 +165,24 @@ class GamePage extends Component {
     });
   }
 
-  _getUpdatedPieces(boardNum, { move, droppedPiece, capturedPiece, moveColor }) {
-    // TODO: Cleaner way to make this immutable
-    // Update moved piece
+  _getUpdatedPiecePositions(boardNum, { move, droppedPiece, capturedPiece, moveColor }) {
     const history = this.state[`history${boardNum}`];
-    const pieces = [..._.last(history).pieces];
+    let piecePositions = _.last(history).piecePositions;
 
     // Update taken piece
-    // Note: Keeping null pieces so element positions don't get moved... this is ugly
+    // Note: Keeping null piecePositions so element positions don't get moved... this is ugly
     if (capturedPiece) {
-      const takenPieceIndex = pieces.findIndex(piece => piece && piece.square === move.to);
-      pieces[takenPieceIndex] = null;
+      const takenPieceIndex = piecePositions.findIndex(piece => piece && piece.square === move.to);
+      piecePositions = Immutable.set(piecePositions, takenPieceIndex, null);
     }
 
+    // Update moved piece
     if (move.from) {
-      // TODO: Cleaner way to make this immutable
-      const piece = pieces.find(piece => piece && piece.square === move.from);
-      const pieceIndex = pieces.findIndex(piece => piece && piece.square === move.from);
-      // Note: piece.square = move.to caused piece to be updated for all history positions!
-      pieces[pieceIndex] = {
-        ...piece,
-        square: move.to
-      };
-    // Update dropped piece from reserve
+      const pieceIndex = piecePositions.findIndex(piece => piece && piece.square === move.from);
+      piecePositions = Immutable.setIn(piecePositions, [pieceIndex, 'square'], move.to);
+    // Update dropped piece
     } else {
-      pieces.push({
+      piecePositions = piecePositions.concat({
         key: `drop_${history.length}`,    // key must be unique
         square: move.to,
         piece: droppedPiece,
@@ -198,10 +190,19 @@ class GamePage extends Component {
       });
     }
 
-    return pieces;
+    return piecePositions;
   }
 
-  _getUpdatedHistory(boardNum, { move, moveColor, droppedPiece, droppedPieceIndex, fen }, pieces) {
+  // Update other board's history by adding captured piece to last move's reserve
+  _getCapturedHistory(otherBoardNum, { moveColor, capturedPiece }) {
+    const capturedColor = getOpposingColor(moveColor);
+    const oldHistory = this.state[`history${otherBoardNum}`];
+    return Immutable.updateIn(oldHistory,
+      [ oldHistory.length - 1,`${capturedColor}Reserve`],
+      (reserve) => reserve + capturedPiece);
+  }
+
+  _getUpdatedHistory(boardNum, { move, moveColor, droppedPiece, droppedPieceIndex, fen }, piecePositions) {
     const opposingColor = getOpposingColor(moveColor);
     const lastMove = _.last(this.state[`history${boardNum}`]);
 
@@ -216,7 +217,7 @@ class GamePage extends Component {
       [`${moveColor}Reserve`]: currentReserve,
       [`${opposingColor}Reserve`]: lastMove[`${opposingColor}Reserve`],
       fen,
-      pieces,
+      piecePositions,
       piece: droppedPiece
     };
 

@@ -93,7 +93,7 @@ class ChessGame extends Component {
     const {
       from: prevFromSquare,
       to: prevToSquare,
-      pieces,
+      piecePositions,
       wReserve,
       bReserve
     } = this._getCurrentMove();
@@ -114,7 +114,7 @@ class ChessGame extends Component {
             moves={this.state.moves}
             inCheck={this.state.inCheck}
             isGameOver={isGameOver || !this._isCurrentMove()}
-            pieces={pieces}
+            piecePositions={piecePositions}
             prevFromSquare={prevFromSquare}
             prevToSquare={prevToSquare}
             onDropPiece={this.handleDropPiece}
