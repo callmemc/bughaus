@@ -37,6 +37,15 @@ export function getSquare(rankIndex, fileIndex, flipped=false) {
   return String.fromCharCode(96 + fileNum) + rankNum;
 }
 
+export function getIndexes (square, flipped=false) {
+  const fileChar = square[0];
+  const fileNum = fileChar.charCodeAt() - 96;
+  const fileIndex = flipped ? 8 - fileNum : fileNum - 1;
+  const rankChar = square[1];
+  const rankIndex = flipped ? Number(rankChar) - 1 : 8 - Number(rankChar);
+  return { rankIndex, fileIndex };
+}
+
 export function canBlockCheckmate(chess) {
   const board = chess.board();
   const turn = chess.turn();

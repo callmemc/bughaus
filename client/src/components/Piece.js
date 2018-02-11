@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { DragSource } from 'react-dnd';
+import { DragSource, DropTarget } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import PieceImage from './PieceImage';
+import dropTarget from '../utils/dropTarget';
 
 class Piece extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
     isDraggable: PropTypes.bool,
-    type: PropTypes.string.isRequired
+    pieceType: PropTypes.string.isRequired
   }
 
   componentDidMount() {
@@ -18,14 +19,16 @@ class Piece extends Component {
   }
 
   render() {
-    const { color, type, connectDragSource, isDragging } = this.props;
+    const { color, pieceType, connectDragSource, isDragging } = this.props;
     const opacity = isDragging ? 0.5 : 1;
 
-    return connectDragSource(
-      <div className="Piece" style={{opacity}}>
-        <PieceImage color={color} type={type} />
+    return this.props.connectDropTarget(connectDragSource(
+      <div className="Piece"
+        style={{opacity}}
+        onMouseDown={this.props.onSelect}>
+        <PieceImage color={color} type={pieceType} />
       </div>
-    );
+    ));
   }
 }
 
@@ -35,7 +38,7 @@ const pieceSource = {
     // Return the data describing the dragged item
     return {
       color: props.color,
-      type: props.type,
+      type: props.pieceType,
       square: props.square,
       index: props.index,
       boardNum: props.boardNum
@@ -49,7 +52,7 @@ const pieceSource = {
   }
 };
 
-function collect(connect, monitor) {
+function collectSource(connect, monitor) {
   return {
     connectDragPreview: connect.dragPreview(),
     connectDragSource: connect.dragSource(),
@@ -57,4 +60,11 @@ function collect(connect, monitor) {
   };
 }
 
-export default DragSource('PIECE', pieceSource, collect)(Piece);
+function collectTarget(connect, monitor) {
+  return {
+    connectDropTarget: connect.dropTarget()
+  };
+}
+
+export default DropTarget('PIECE', dropTarget, collectTarget)(
+  DragSource('PIECE', pieceSource, collectSource)(Piece));

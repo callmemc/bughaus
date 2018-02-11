@@ -1,13 +1,20 @@
 import React, { Component, PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
+import styled from 'styled-components';
 import chessjs from '../chess.js';
 
 import Square from './Square';
+import Piece from './Piece';
 import './Chessboard.css';
-import { isMove, getSquare } from '../utils';
+import { isMove, getSquare, getIndexes } from '../utils';
 
 const Chess = chessjs.Chess();
+
+
+const Squares = styled.div`
+  position: relative;
+`;
 
 class Chessboard extends Component {
   static propTypes = {
@@ -17,65 +24,134 @@ class Chessboard extends Component {
     prevFromSquare: PropTypes.string,
     prevToSquare: PropTypes.string,
     moves: PropTypes.array,
+    pieces: PropTypes.array,
 
     onDropPiece: PropTypes.func.isRequired,
     onDropPieceFromReserve: PropTypes.func.isRequired,
     onSelectSquare: PropTypes.func.isRequired
   }
 
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // Resets drag destiniation square to ensure transitions are applied when pieces are moved,
+    //  e.g. when another player moves a piece or when stepping through move history
+    if (this.props.pieces !== nextProps.pieces) {
+      this.setState({ dragDestSquare: undefined });
+    }
+  }
+
   render() {
-    const { board, moves } = this.props;
+    const { board, moves, prevFromSquare, prevToSquare, turn, inCheck } = this.props;
     if (!board) {
       return <div></div>;
     }
 
+    // TODO: remove 'board' state prop. Render active, prev move, valid move, and checked king squares
+    // as overlays
+
     return (
       <div className="Chessboard">
         <RankCoordinates flipped={this.props.flipped} />
-        <div className="Chessboard__squares">
+        <Squares>
+          {this.renderPieces()}
           {_.map(board, (rank, rankIndex) =>
             <div className="Chessboard-row" key={rankIndex}>
               {_.map(rank, (piece, fileIndex) => {
                 const square = getSquare(rankIndex, fileIndex, this.props.flipped);
-                const squareColor = Chess.square_color(square);
-                const isPrevMove = square === this.props.prevFromSquare ||
-                  square === this.props.prevToSquare;
+                const isPrevMove = square === prevFromSquare ||
+                  square === prevToSquare;
                 const { color: pieceColor, type: pieceType} = piece || {};
-                const isPlayer = pieceColor && this._getUsername(pieceColor) ===
-                  this.props.username;
-                const isTurn = this.props.turn === pieceColor;
-                const hasMovablePiece = isTurn && isPlayer;
-                const isChecked = this.props.inCheck && isTurn && pieceType === 'k';
+                const isChecked = inCheck && turn === pieceColor && pieceType === 'k';
 
                 return <Square
                   key={fileIndex}
                   boardNum={this.props.boardNum}
-                  hasMovablePiece={hasMovablePiece}
                   isActive={square === this.props.activeSquare}
                   isPrevMove={isPrevMove}
                   isValidMove={isMove(square, moves)}
                   isChecked={isChecked}
-                  isGameOver={this.props.isGameOver}
-                  onDropPiece={this.props.onDropPiece}
+                  onDropPiece={this.handleDropPiece}
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
                   onSelect={this.props.onSelectSquare}
-                  pieceType={pieceType}
-                  pieceColor={pieceColor}
                   square={square}
-                  squareColor={squareColor} />
+                  squareColor={Chess.square_color(square)} />
               })}
             </div>
           )}
           <FileCoordinates flipped={this.props.flipped} />
-        </div>
+        </Squares>
       </div>
     );
   }
 
-  _getUsername(color) {
-    return _.get(this.props[`${color}Player`], 'username');
+  _canMovePiece(color) {
+    const username = _.get(this.props[`${color}Player`], 'username');
+    return !this.props.isGameOver &&
+      (username === this.props.username) &&
+      (this.props.turn === color);
+  }
+
+  renderPieces() {
+    const { pieces } = this.props;
+    if (!pieces) {
+      return;
+    }
+
+    // Note: If you reorder an element in an array while a transition is running, the animation will cut
+    //  This is why we must order pieces determinately by storing them in a pieces array
+    return pieces.map((pieceObj, i) => {
+      if (pieceObj === null) {
+        return <div key={i} />;
+      }
+
+      const { key, piece, square, color } = pieceObj;
+      const { rankIndex, fileIndex } = getIndexes(square, this.props.flipped);
+      const style = {transform: `translate(${fileIndex*48}px, ${rankIndex*48}px)`};
+
+      return (
+        <PieceContainer
+          key={key}
+          style={style}
+          shouldTransition={!(square === this.state.dragDestSquare)}>
+          <Piece
+            boardNum={this.props.boardNum}
+            color={color}
+            isDraggable={this._canMovePiece(color)}
+            onDropPiece={this.handleDropPiece}
+            onSelect={() => this.props.onSelectPiece(square, color)}
+            pieceType={piece}
+            square={square} />
+        </PieceContainer>
+      );
+    });
+  }
+
+  handleDropPiece = ({ from, to }) => {
+    this.props.onDropPiece({ from, to });
+
+    // This is used to prevent the transition animation by applying the 'transition: none' style
+    //  to the newly rendered component when it has moved to its destiniation square
+    this.setState({ dragDestSquare: to });
   }
 }
+
+const PieceContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  display: flex;
+
+  ${props => props.shouldTransition && `
+    transition: 0.2s linear;
+  `}
+`;
 
 class FileCoordinates extends PureComponent {
   render() {

@@ -43,19 +43,19 @@ class ReservePiece extends Component {
   render() {
     return (
       <div className={classNames("Reserve__piece",
-        {'Reserve__piece--active': this.props.isActive})}
-        onMouseDown={this.handleMouseDown}>
+        {'Reserve__piece--active': this.props.isActive})}>
         <Piece
           boardNum={this.props.boardNum}
           color={this.props.color}
           index={this.props.index}
+          onSelect={this.handleSelectPiece}
           isDraggable={this.props.isSelectable}
-          type={this.props.type} />
+          pieceType={this.props.type} />
       </div>
     );
   }
 
-  handleMouseDown = () => {
+  handleSelectPiece = () => {
     if (this.props.isSelectable) {
       this.props.onSelect(this.props.index, this.props.color, this.props.type);
     }
