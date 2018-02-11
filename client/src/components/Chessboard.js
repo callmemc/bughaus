@@ -16,9 +16,21 @@ const Squares = styled.div`
   position: relative;
 `;
 
+const CheckedKingOverlay = styled.div`
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255,0,0,1) 0%,
+    rgba(231,0,0,1) 25%,
+    rgba(169,0,0,0) 89%,
+    rgba(158,0,0,0) 100%);
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  position: absolute;
+`;
+
 class Chessboard extends Component {
   static propTypes = {
-    board: PropTypes.array,
     flipped: PropTypes.bool,
     isGameOver: PropTypes.bool,
     prevFromSquare: PropTypes.string,
@@ -45,27 +57,18 @@ class Chessboard extends Component {
   }
 
   render() {
-    const { board, moves, prevFromSquare, prevToSquare, turn, inCheck } = this.props;
-    if (!board) {
-      return <div></div>;
-    }
-
-    // TODO: remove 'board' state prop. Render active, prev move, valid move, and checked king squares
-    // as overlays
+    const { moves, prevFromSquare, prevToSquare } = this.props;
 
     return (
       <div className="Chessboard">
         <RankCoordinates flipped={this.props.flipped} />
         <Squares>
           {this.renderPieces()}
-          {_.map(board, (rank, rankIndex) =>
+          {_.map([...Array(8)], (x, rankIndex) =>
             <div className="Chessboard-row" key={rankIndex}>
-              {_.map(rank, (piece, fileIndex) => {
+              {_.map([...Array(8)], (y, fileIndex) => {
                 const square = getSquare(rankIndex, fileIndex, this.props.flipped);
-                const isPrevMove = square === prevFromSquare ||
-                  square === prevToSquare;
-                const { color: pieceColor, type: pieceType} = piece || {};
-                const isChecked = inCheck && turn === pieceColor && pieceType === 'k';
+                const isPrevMove = square === prevFromSquare || square === prevToSquare;
 
                 return <Square
                   key={fileIndex}
@@ -73,7 +76,6 @@ class Chessboard extends Component {
                   isActive={square === this.props.activeSquare}
                   isPrevMove={isPrevMove}
                   isValidMove={isMove(square, moves)}
-                  isChecked={isChecked}
                   onDropPiece={this.handleDropPiece}
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
                   onSelect={this.props.onSelectSquare}
@@ -96,14 +98,16 @@ class Chessboard extends Component {
   }
 
   renderPieces() {
-    const { pieces } = this.props;
+    const { pieces, turn, inCheck } = this.props;
     if (!pieces) {
       return;
     }
 
+    let checkedKing;
+
     // Note: If you reorder an element in an array while a transition is running, the animation will cut
     //  This is why we must order pieces determinately by storing them in a pieces array
-    return pieces.map((pieceObj, i) => {
+    const pieceElements = pieces.map((pieceObj, i) => {
       if (pieceObj === null) {
         return <div key={i} />;
       }
@@ -111,6 +115,10 @@ class Chessboard extends Component {
       const { key, piece, square, color } = pieceObj;
       const { rankIndex, fileIndex } = getIndexes(square, this.props.flipped);
       const style = {transform: `translate(${fileIndex*48}px, ${rankIndex*48}px)`};
+
+      if (inCheck && turn === color && piece === 'k') {
+        checkedKing = <CheckedKingOverlay key='king' style={style} />;
+      }
 
       return (
         <PieceContainer
@@ -128,6 +136,8 @@ class Chessboard extends Component {
         </PieceContainer>
       );
     });
+
+    return pieceElements.concat(checkedKing);
   }
 
   handleDropPiece = ({ from, to }) => {
@@ -143,7 +153,7 @@ const PieceContainer = styled.div`
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+  z-index: 3;
   width: 48px;
   height: 48px;
   display: flex;

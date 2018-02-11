@@ -57,10 +57,7 @@ class ChessGame extends Component {
       /* Describe board state */
       activePromotion: undefined,     // Object holding promotion info before user has selected piece
       activePiece: undefined,         // Piece selected by the user
-
-      /* Describe board stated based on current move (the move in game's history currently being viewed) */
-      currentMoveDistance: 0,         // Distance from currently viewed move to last move
-      currentBoard: undefined,        // Snapshot of board at current move
+      currentMoveDistance: 0         // Distance from currently viewed move to last move
     };
   }
 
@@ -84,18 +81,10 @@ class ChessGame extends Component {
     if (nextProps.promotedSquares !== this.state.promotedSquares) {
       this.setState({ promotedSquares: nextProps.promotedSquares });
     }
-
-    // NOTE: This is confusing.
-    // TODO: Need to think of a better way to do this. Probably involves Redux
-    if (nextProps.isFlipped !== this.props.isFlipped) {
-      this.setState({
-        currentBoard: this._getBoard({ flipped: nextProps.isFlipped })
-      });
-    }
   }
 
   render() {
-    if (!_.get(this.state, 'currentBoard')) {
+    if (!this.props.history) {
       return <div />;
     }
 
@@ -123,7 +112,6 @@ class ChessGame extends Component {
             activeSquare={activeSquare}
             flipped={this.props.isFlipped}
             moves={this.state.moves}
-            board={this.state.currentBoard}
             inCheck={this.state.inCheck}
             isGameOver={isGameOver || !this._isCurrentMove()}
             pieces={pieces}
@@ -150,7 +138,7 @@ class ChessGame extends Component {
             onNextMove={this.handleNextMove}
             onLastMove={this.handleLastMove}
             onSelectMove={this.handleSelectMove}
-            onFlip={this.onFlip}
+            onFlip={this.props.onFlip}
             turn={this.state.turn} />
         </PlayContainer>
         {this._renderUsername(bottomColor)}
@@ -372,23 +360,12 @@ class ChessGame extends Component {
 
   _updateBoard() {
     this.setState({
-      currentBoard: this._getBoard({flipped: this.props.isFlipped}),
       inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
       inCheck: this.chess.in_check(),
       turn: this.chess.turn(),
       activePiece: undefined,
       moves: undefined
     });
-  }
-
-  _getBoard({flipped}) {
-    let board = this.chess.board();
-
-    if (flipped) {
-      board.reverse().forEach(row => row.reverse());
-    }
-
-    return board;
   }
 
   _renderPromotionDialog() {
@@ -400,14 +377,6 @@ class ChessGame extends Component {
           pieces={this.state.activePromotion.pieces} />
       );
     }
-  }
-
-  onFlip = () => {
-    this.props.onFlip();
-
-    this.setState({
-      currentBoard: this._getBoard({flipped: !this.props.isFlipped})
-    });
   }
 
   handleFirstMove = () => {
@@ -428,7 +397,6 @@ class ChessGame extends Component {
     this.setState({
       currentMoveDistance: 0
     });
-    this._updateJustBoard();
   }
 
   handleSelectMove = (index) => {
@@ -451,7 +419,6 @@ class ChessGame extends Component {
     this.setState({
       currentMoveDistance: newDistance
     });
-    this._updateJustBoard();
   }
 
   // Returns true if viewing current move
@@ -473,12 +440,6 @@ class ChessGame extends Component {
   // Index of move in history array
   _getCurrentMoveIndex() {
     return this.props.history.length - 1 - this.state.currentMoveDistance;
-  }
-
-  _updateJustBoard() {
-    this.setState({
-      currentBoard: this._getBoard({flipped: this.props.isFlipped})
-    });
   }
 
   _canMovePiece(color) {
