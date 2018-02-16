@@ -29,7 +29,7 @@ class Reserve extends Component {
             color={this.props.color}
             index={index}
             isActive={this.props.activeIndex === index}
-            isSelectable={!this.props.isGameOver && this.props.isSelectable}
+            isSelectable={this.props.isSelectable}
             onSelect={this.props.onSelectPiece}
             type={piece} />
         ))}

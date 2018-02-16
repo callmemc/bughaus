@@ -32,7 +32,7 @@ const CheckedKingOverlay = styled.div`
 class Chessboard extends Component {
   static propTypes = {
     flipped: PropTypes.bool,
-    isGameOver: PropTypes.bool,
+    isFrozen: PropTypes.bool,
     prevFromSquare: PropTypes.string,
     prevToSquare: PropTypes.string,
     moves: PropTypes.array,
@@ -92,7 +92,7 @@ class Chessboard extends Component {
 
   _canMovePiece(color) {
     const username = _.get(this.props[`${color}Player`], 'username');
-    return !this.props.isGameOver &&
+    return !this.props.isFrozen &&
       (username === this.props.username) &&
       (this.props.turn === color);
   }

@@ -115,7 +115,7 @@ class ChessGame extends Component {
             flipped={this.props.isFlipped}
             moves={this.state.moves}
             inCheck={this.state.inCheck}
-            isGameOver={isGameOver || !this._isCurrentMove()}
+            isFrozen={this._isFrozen()}
             prevFromSquare={prevFromSquare}
             prevToSquare={prevToSquare}
             onDropPiece={this.handleDropPiece}
@@ -129,9 +129,7 @@ class ChessGame extends Component {
           <Sidebar
             moves={this.props.moves}
             currentMoveIndex={this.props.moveIndex}
-
             counters={this.props.counters}
-
             bottomColor={bottomColor}
             topColor={topColor}
             inCheckmate={this.state.inCheckmate}
@@ -172,11 +170,10 @@ class ChessGame extends Component {
 
   _renderReserve(color, queue) {
     const { activePiece, turn } = this.state;
-    const { isGameOver, username } = this.props;
-    const isPlayer = this._getUsername(color) === username;
+    const isPlayer = this._getUsername(color) === this.props.username;
 
     let activeIndex;
-    if (activePiece && activePiece.type === 'reserve'  && activePiece.color === color) {
+    if (activePiece && activePiece.type === 'reserve' && activePiece.color === color) {
       activeIndex = activePiece.index;
     }
 
@@ -184,8 +181,7 @@ class ChessGame extends Component {
       activeIndex={activeIndex}
       boardNum={this.props.boardNum}
       color={color}
-      isGameOver={isGameOver}
-      isSelectable={!isGameOver && turn === color && isPlayer}
+      isSelectable={!this._isFrozen() && turn === color && isPlayer}
       onSelectPiece={this.handleSelectPieceFromReserve}
       queue={queue} />;
   }
@@ -262,6 +258,10 @@ class ChessGame extends Component {
   }
 
   handleSelectPieceFromReserve = (index, color, piece) => {
+    if (this._isFrozen()) {
+      return;
+    }
+
     this.setState({
       activePiece: { type: 'reserve', index, color, piece },
       moves: undefined
@@ -277,7 +277,7 @@ class ChessGame extends Component {
   }
 
   handleSelectPiece = (square, pieceColor) => {
-    if (this.props.isGameOver) {
+    if (this._isFrozen()) {
       return;
     }
 
@@ -298,7 +298,7 @@ class ChessGame extends Component {
   }
 
   handleSelectSquare = (square) => {
-    if (this.props.isGameOver) {
+    if (this._isFrozen()) {
       return;
     }
 
@@ -393,10 +393,11 @@ class ChessGame extends Component {
     }
   }
 
-  // Returns true if viewing current move
-  _isCurrentMove() {
-    const { moves, moveIndex } = this.props;
-    return _.isEmpty(moves) || moveIndex === moves.length - 1;
+  _isFrozen() {
+    const { moves, moveIndex, isGameOver } = this.props;
+    // True if viewing current move
+    const isCurrentMove = _.isEmpty(moves) || moveIndex === moves.length - 1;
+    return isGameOver || !isCurrentMove;
   }
 
   // Current move being viewed
