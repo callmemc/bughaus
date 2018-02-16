@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
+import styled from 'styled-components';
 import Piece from './Piece';
+
+const Container = styled.div`
+  display: flex;
+  height: 48px;
+`;
 
 class Reserve extends Component {
   static propTypes = {
@@ -9,13 +14,15 @@ class Reserve extends Component {
     color: PropTypes.string.isRequired,
     isSelectable: PropTypes.bool,
     onSelectPiece: PropTypes.func.isRequired,
-    queue: PropTypes.string.isRequired
+    queue: PropTypes.string
   }
 
   render() {
+    const queue = this.props.queue || '';
+
     return (
-      <div className="Reserve">
-        {this.props.queue.split('').filter(val => val).map((piece, index) => (
+      <Container>
+        {queue.split('').filter(val => val).map((piece, index) => (
           <ReservePiece
             key={index}
             boardNum={this.props.boardNum}
@@ -26,10 +33,16 @@ class Reserve extends Component {
             onSelect={this.props.onSelectPiece}
             type={piece} />
         ))}
-      </div>
+      </Container>
     );
   }
 }
+
+const PieceContainer = styled.div`
+  ${(props) => props.isActive && `
+    background-color: #25ab25;
+  `}
+`;
 
 class ReservePiece extends Component {
   static propTypes = {
@@ -42,8 +55,7 @@ class ReservePiece extends Component {
 
   render() {
     return (
-      <div className={classNames("Reserve__piece",
-        {'Reserve__piece--active': this.props.isActive})}>
+      <PieceContainer isActive={this.props.isActive}>
         <Piece
           boardNum={this.props.boardNum}
           color={this.props.color}
@@ -51,7 +63,7 @@ class ReservePiece extends Component {
           onSelect={this.handleSelectPiece}
           isDraggable={this.props.isSelectable}
           pieceType={this.props.type} />
-      </div>
+      </PieceContainer>
     );
   }
 

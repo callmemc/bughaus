@@ -36,7 +36,7 @@ class Chessboard extends Component {
     prevFromSquare: PropTypes.string,
     prevToSquare: PropTypes.string,
     moves: PropTypes.array,
-    piecePositions: PropTypes.array,
+    board: PropTypes.array,
 
     onDropPiece: PropTypes.func.isRequired,
     onDropPieceFromReserve: PropTypes.func.isRequired,
@@ -49,9 +49,9 @@ class Chessboard extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    // Resets drag destiniation square to ensure transitions are applied when piecePositions are moved,
+    // Resets drag destiniation square to ensure transitions are applied when board are moved,
     //  e.g. when another player moves a piece or when stepping through move history
-    if (this.props.piecePositions !== nextProps.piecePositions) {
+    if (this.props.board !== nextProps.board) {
       this.setState({ dragDestSquare: undefined });
     }
   }
@@ -98,16 +98,16 @@ class Chessboard extends Component {
   }
 
   renderPieces() {
-    const { piecePositions, turn, inCheck } = this.props;
-    if (!piecePositions) {
+    const { board, turn, inCheck } = this.props;
+    if (!board) {
       return;
     }
 
     let checkedKing;
 
     // Note: If you reorder an element in an array while a transition is running, the animation will cut
-    //  This is why we must order piecePositions determinately by storing them in a piecePositions array
-    const pieceElements = piecePositions.map((pieceObj, i) => {
+    //  This is why we must order board determinately by storing them in a board array
+    const pieceElements = board.map((pieceObj, i) => {
       if (pieceObj === null) {
         return <div key={i} />;
       }

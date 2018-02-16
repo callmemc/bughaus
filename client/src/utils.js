@@ -27,10 +27,6 @@ export function isMove(square, moves) {
   return !!(moves && moves.find(move => move.to === square));
 }
 
-export function removeFromReserve(reserve, index) {
-  return reserve.substring(0, index) + reserve.substring(index + 1);
-}
-
 export function getSquare(rankIndex, fileIndex, flipped=false) {
   const fileNum = flipped ? 8 - fileIndex : fileIndex + 1;
   const rankNum = flipped ? rankIndex + 1 : 8 - rankIndex;

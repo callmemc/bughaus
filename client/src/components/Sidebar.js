@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import styled from 'styled-components';
 import _ from 'lodash';
-import { grey700, blue700 } from 'material-ui/styles/colors';
+import { grey700, grey500, blue700 } from 'material-ui/styles/colors';
 
 import FontIcon from 'material-ui/FontIcon';
 import FlipIcon from 'material-ui/svg-icons/action/cached';
 
 const SidebarContainer = styled.div`
-  border: 1px solid black;
+  border: 1px solid ${grey500};
   display: flex;
   flex-direction: column;
   font-size: 13px;
@@ -77,7 +77,7 @@ class Sidebar extends Component {
     counters: PropTypes.object.isRequired,
     bottomColor: PropTypes.oneOf(['w', 'b']),
     topColor: PropTypes.oneOf(['w', 'b']),
-    history: PropTypes.array.isRequired,
+    moves: PropTypes.array.isRequired,
     inCheckmate: PropTypes.bool,
     isGameOver: PropTypes.bool,
     turn: PropTypes.string
@@ -126,7 +126,7 @@ class Sidebar extends Component {
           <MoveHistory
             onSelectMove={this.props.onSelectMove}
             currentMoveIndex={this.props.currentMoveIndex}
-            history={this.props.history} />
+            moves={this.props.moves} />
         </MoveContent>
         {this._renderPlayerBox(this.props.bottomColor)}
       </SidebarContainer>
@@ -164,20 +164,20 @@ const MoveNumber = styled.div`
 `;
 
 function MoveHistory(props) {
-  const historyArr = props.history;
+  const { moves } = props;
   let rows = [];
   // Note: First move in array is initial position
-  for (let i = 1, moveNum = 1; i < historyArr.length; i+=2, moveNum++) {
+  for (let i = 0, moveNum = 1; i < moves.length; i+=2, moveNum++) {
     rows.push(
       <Move key={i}>
         <MoveNumber>{moveNum}</MoveNumber>
         <HalfMove
           highlight={props.currentMoveIndex === i}
-          move={historyArr[i]}
+          move={moves[i]}
           onClick={() => props.onSelectMove(i)} />
         <HalfMove
           highlight={props.currentMoveIndex === i+1}
-          move={historyArr[i+1]}
+          move={moves[i+1]}
           onClick={() => props.onSelectMove(i+1)} />
       </Move>
     );

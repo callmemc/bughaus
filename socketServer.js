@@ -23,9 +23,8 @@ function connectSocket(socket) {
   // If player is found, update player's game status to connected
   updateUserStatus('CONNECTED');
 
-  socket.on('move', ({ game, boardNum, nextColor, isCapture }) => {
-    // If checkmate, end timer
-    // TODO: Restart timer
+  socket.on('move', ({ game, newPosition, boardNum, nextColor, isCapture }) => {
+    // If checkmate, end timer. TODO: Restart timer
     const timer = timers[socketGameId];
     if (timer) {
       if (game.winner) {
@@ -37,12 +36,12 @@ function connectSocket(socket) {
       console.error('Timer not found');
     }
 
-    // Update other sockets in the room
     socket.to(socketGameId).emit('updateGameFromMove', {
-      game,
-      isCapture
+      game, newPosition, isCapture
     });
+
     db.updateGame(socketGameId, game);
+    db.addPosition(socketGameId, newPosition);
   });
 
   socket.on('setUsername', (data) => {

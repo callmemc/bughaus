@@ -27,7 +27,7 @@ class ChessGame extends Component {
     isGameOver: PropTypes.bool,
     onMove: PropTypes.func.isRequired,
 
-    history: PropTypes.array,
+    moves: PropTypes.array,
     promotedSquares: PropTypes.object,
     isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
   }
@@ -35,14 +35,15 @@ class ChessGame extends Component {
   static defaultProps = {
     wPlayer: {},
     bPlayer: {},
-    counters: {}
+    counters: {},
+    moves: []
   }
 
   constructor(props) {
     super(props);
 
     // Temporarily storing mutated chess object in component
-    this.chess = new chessjs.Chess();
+    this.chess = new chessjs.Chess(props.fen);
 
     this.state = {
       /* State that is updatable by parent. See note above componentWillReceiveProps() */
@@ -55,10 +56,14 @@ class ChessGame extends Component {
       turn: undefined,        // 'w' or 'b'
 
       /* Describe board state */
-      activePromotion: undefined,     // Object holding promotion info before user has selected piece
-      activePiece: undefined,         // Piece selected by the user
-      currentMoveDistance: 0         // Distance from currently viewed move to last move
+      activePromotion: undefined,   // Object holding promotion info before user has selected piece
+      activePiece: undefined,       // Piece selected by the user
+      currentMoveIndex: 0           // Distance from currently viewed move to last move
     };
+  }
+
+  componentDidMount() {
+    this._updateBoard();
   }
 
   // NOTE: This use of 2 sources of truth (fen & promotedSquares) is dangerous.
@@ -72,9 +77,8 @@ class ChessGame extends Component {
   //  syncing with the socket
   componentWillReceiveProps (nextProps) {
     // If new move, update board
-    if (this._isCurrentMove() && nextProps.history !== this.props.history) {
-      const newFen = _.last(nextProps.history).fen;
-      this.chess = new chessjs.Chess(newFen);
+    if (nextProps.fen !== this.props.fen) {
+      this.chess = new chessjs.Chess(nextProps.fen);
       this._updateBoard();
     }
 
@@ -84,18 +88,15 @@ class ChessGame extends Component {
   }
 
   render() {
-    if (!this.props.history) {
+    if (!this.props.moves) {
       return <div />;
     }
 
-    const { history, isFlipped, isGameOver } = this.props;
+    const { isFlipped, isGameOver, wReserve, bReserve } = this.props;
     const activeSquare = _.get(this.state.activePiece, 'square');
     const {
       from: prevFromSquare,
-      to: prevToSquare,
-      piecePositions,
-      wReserve,
-      bReserve
+      to: prevToSquare
     } = this._getCurrentMove();
     const topColor = isFlipped ? 'w' : 'b';
     const bottomColor = isFlipped ? 'b' : 'w';
@@ -108,13 +109,13 @@ class ChessGame extends Component {
         {this._renderUsername(topColor)}
         <PlayContainer>
           <Chessboard
+            board={this.props.board}
             boardNum={this.props.boardNum}
             activeSquare={activeSquare}
             flipped={this.props.isFlipped}
             moves={this.state.moves}
             inCheck={this.state.inCheck}
             isGameOver={isGameOver || !this._isCurrentMove()}
-            piecePositions={piecePositions}
             prevFromSquare={prevFromSquare}
             prevToSquare={prevToSquare}
             onDropPiece={this.handleDropPiece}
@@ -126,18 +127,20 @@ class ChessGame extends Component {
             bPlayer={this.props.bPlayer}
             username={this.props.username} />
           <Sidebar
+            moves={this.props.moves}
+            currentMoveIndex={this.props.moveIndex}
+
             counters={this.props.counters}
-            currentMoveIndex={this._getCurrentMoveIndex()}
+
             bottomColor={bottomColor}
             topColor={topColor}
-            history={history}
             inCheckmate={this.state.inCheckmate}
             isGameOver={isGameOver}
-            onFirstMove={this.handleFirstMove}
-            onPrevMove={this.handlePrevMove}
-            onNextMove={this.handleNextMove}
-            onLastMove={this.handleLastMove}
-            onSelectMove={this.handleSelectMove}
+            onFirstMove={this.props.onFirstMove}
+            onPrevMove={this.props.onPrevMove}
+            onNextMove={this.props.onNextMove}
+            onLastMove={this.props.onLastMove}
+            onSelectMove={this.props.onSelectMove}
             onFlip={this.props.onFlip}
             turn={this.state.turn} />
         </PlayContainer>
@@ -212,7 +215,7 @@ class ChessGame extends Component {
     if (moveResult) {
       // Square of pawn that was captured in enpassant is last move
       const capturedSquare = moveResult.flags === 'e' ?
-        _.last(this.props.history).to : to;
+        _.last(this.props.moves).to : to;
 
       this._makeMove({
         from, to,
@@ -390,67 +393,21 @@ class ChessGame extends Component {
     }
   }
 
-  handleFirstMove = () => {
-    this._handleChangeMove(this._getCurrentMoveIndex());
-  }
-
-  handlePrevMove = () => {
-    this._handleChangeMove(1);
-  }
-
-  handleNextMove = () => {
-    this._handleChangeMove(-1);
-  }
-
-  handleLastMove = () => {
-    const move = _.last(this.props.history);
-    this.chess.load(move.fen);
-    this.setState({
-      currentMoveDistance: 0
-    });
-  }
-
-  handleSelectMove = (index) => {
-    const distance = this._getCurrentMoveIndex() - index;
-    this._handleChangeMove(distance);
-  }
-
-  // Changes current move
-  _handleChangeMove(distance) {
-    const { history } = this.props;
-    const newDistance = this.state.currentMoveDistance + distance;
-    const move = history[history.length - 1 - newDistance];
-
-    if (!move) {
-      return console.error('No move found');
-    }
-
-    this.chess.load(move.fen);
-
-    this.setState({
-      currentMoveDistance: newDistance
-    });
-  }
-
   // Returns true if viewing current move
   _isCurrentMove() {
-    return this.state.currentMoveDistance === 0;
+    const { moves, moveIndex } = this.props;
+    return _.isEmpty(moves) || moveIndex === moves.length - 1;
   }
 
   // Current move being viewed
   _getCurrentMove() {
-    const { history } = this.props;
+    const { moves, moveIndex } = this.props;
 
-    if (!_.isEmpty(history)) {
-      return history[this._getCurrentMoveIndex()];
-    } else {
+    if (_.isEmpty(moves) || moveIndex === -1) {
       return {};
+    } else {
+      return moves[moveIndex];
     }
-  }
-
-  // Index of move in history array
-  _getCurrentMoveIndex() {
-    return this.props.history.length - 1 - this.state.currentMoveDistance;
   }
 
   _canMovePiece(color) {

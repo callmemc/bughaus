@@ -63,23 +63,35 @@ const INITIAL_PIECES = [
   { key: 'g8', square: 'g8', piece: 'n', color: 'b' },
   { key: 'h8', square: 'h8', piece: 'r', color: 'b' }
 ];
-const INITIAL_POSITION = {
-  fen: INITIAL_FEN,
-  wReserve: '',
-  bReserve: '',
-  piecePositions: INITIAL_PIECES
-};
+
 const INITIAL_GAME = {
-  fen0: INITIAL_FEN,
-  wReserve0: '',
-  bReserve0: '',
-  history0: [INITIAL_POSITION],
-  pieces0: INITIAL_PIECES,
-  fen1: INITIAL_FEN,
-  wReserve1: '',
-  bReserve1: '',
-  history1: [INITIAL_POSITION],
-  pieces1: INITIAL_PIECES
+  // Store all the positions for game in one big array b/c there's only one position that
+  //  you're looking at. Storing positions in 2 board arrays will get confusing to reconcile
+  //  what the actual latest position you're looking at is from the latest move
+  history: [
+    {
+      boardNum: 0,
+      fen: INITIAL_FEN,
+      board: INITIAL_PIECES,
+      wCaptured: '',
+      bCaptured: '',
+      wDropped: [],
+      bDropped: [],
+      moveIndex: -1
+    },
+    {
+      boardNum: 1,
+      fen: INITIAL_FEN,
+      board: INITIAL_PIECES,
+      wCaptured: '',
+      bCaptured: '',
+      wDropped: [],
+      bDropped: [],
+      moveIndex: -1
+    }
+  ],
+  moves0: [],
+  moves1: []
 };
 
 export function createGame(gameId) {
@@ -96,4 +108,13 @@ export function getGame(gameId) {
 export function updateGame(gameId, data) {
   const collection = db.collection('games');
   return collection.updateOne({ '_id': gameId }, { '$set': data });
+}
+
+export function addPosition(gameId, position) {
+  const collection = db.collection('games');
+
+  return collection.updateOne(
+    { '_id': gameId },
+    { '$push': { history: position } }
+  );
 }

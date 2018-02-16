@@ -6,15 +6,6 @@
   margin-left: 20px;
 }
 
-.Reserve {
-  display: flex;
-  height: 48px;
-}
-
-.Reserve__piece--active {
-  background-color: #25ab25;
-}
-
 .Chessboard {
   display: flex;
 }
