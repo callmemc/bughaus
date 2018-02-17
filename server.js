@@ -50,7 +50,6 @@ db.connectClient().then((dbInstance) => {
   });
 
   /****** API ******/
-
   app.get('/api/game/:id', function (req, res) {
     const gameId = req.params.id;
 

@@ -57,8 +57,7 @@ class ChessGame extends Component {
 
       /* Describe board state */
       activePromotion: undefined,   // Object holding promotion info before user has selected piece
-      activePiece: undefined,       // Piece selected by the user
-      currentMoveIndex: 0           // Distance from currently viewed move to last move
+      activePiece: undefined        // Piece selected by the user
     };
   }
 

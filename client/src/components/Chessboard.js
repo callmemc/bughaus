@@ -68,17 +68,20 @@ class Chessboard extends Component {
             <div className="Chessboard-row" key={rankIndex}>
               {_.map([...Array(8)], (y, fileIndex) => {
                 const square = getSquare(rankIndex, fileIndex, this.props.flipped);
-                const isPrevMove = square === prevFromSquare || square === prevToSquare;
+                const isCurrSquare = !!prevFromSquare &&
+                  (square === prevFromSquare || square === prevToSquare);
+                const isDropSquare = !prevFromSquare && square === prevToSquare;
 
                 return <Square
                   key={fileIndex}
                   boardNum={this.props.boardNum}
                   isActive={square === this.props.activeSquare}
-                  isPrevMove={isPrevMove}
+                  isDropSquare={isDropSquare}
+                  isCurrSquare={isCurrSquare}
                   isValidMove={isMove(square, moves)}
                   onDropPiece={this.handleDropPiece}
                   onDropPieceFromReserve={this.props.onDropPieceFromReserve}
-                  onSelect={this.props.onSelectSquare}
+                  onSelect={() => this.props.onSelectSquare(square)}
                   square={square}
                   squareColor={Chess.square_color(square)} />
               })}

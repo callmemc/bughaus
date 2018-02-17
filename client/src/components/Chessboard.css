@@ -14,42 +14,6 @@
   display: flex;
 }
 
-.Chessboard-square {
-  display: flex;
-  width: 48px;
-  height: 48px;
-  box-sizing: border-box;  /* collapse borders */
-  cursor: pointer;
-}
-
-.Chessboard-square--checked {
-  border: 2px solid red;
-}
-
-.Chessboard-square--dark {
-  background-color: #917156;
-}
-
-.Chessboard-square--light {
-  background-color: #eee;
-}
-
-.Chessboard-square--active {
-  background-color: #25ab25;
-}
-
-.Chessboard-square--previous.Chessboard-square--light {
-  background-color: #feef88;
-}
-
-.Chessboard-square--previous.Chessboard-square--dark {
-  background-color: #c1a535;
-}
-
-.Chessboard-square--valid {
-  border: 3px solid #25ab25;
-}
-
 .Piece {
   display: flex;
   flex: 1;
