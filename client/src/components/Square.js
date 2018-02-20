@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { DropTarget } from 'react-dnd';
-import classNames from 'classnames';
 import styled from 'styled-components';
 import dropTarget from '../utils/dropTarget';
 import { red200, red400 } from 'material-ui/styles/colors';

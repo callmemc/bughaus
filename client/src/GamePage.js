@@ -163,6 +163,11 @@ class GamePage extends Component {
     const newPosition = getNewPosition(data, boardNum, history);
     const newMoves = this.state[`moves${boardNum}`].concat(move);
 
+    let winner;
+    if (isCheckmate) {
+      winner = { color: moveColor, boardNum };
+    }
+
     this.setState({
       history: history.concat(newPosition),
       [`moves${boardNum}`]: newMoves,
@@ -171,15 +176,14 @@ class GamePage extends Component {
         historyIndex: history.length
       },
       // Note: Winner is manually set, rather than calculated from fen, b/c players can also lose from timeout
-      ...isCheckmate && {
-        winner: { color: moveColor, boardNum }
-      }
+      ...isCheckmate && { winner }
     });
 
     this.socket.emit('move', {
       game: {
         [`promotedSquares${boardNum}`]: promotedSquares,
-        [`moves${boardNum}`]: newMoves
+        [`moves${boardNum}`]: newMoves,
+        ...isCheckmate && { winner }
       },
       newPosition,
       boardNum,
