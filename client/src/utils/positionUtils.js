@@ -49,7 +49,9 @@ export function getNewPosition(data, boardNum, history) {
   };
 }
 
-function getNewBoard(boardNum, lastBoard, { move, droppedPiece, capturedPiece, capturedSquare, moveColor }, history) {
+function getNewBoard(boardNum, lastBoard,
+  { move, droppedPiece, capturedPiece, capturedSquare, moveColor, promotionPiece },
+  history) {
   let newBoard = lastBoard;
 
   // Update taken piece
@@ -63,6 +65,10 @@ function getNewBoard(boardNum, lastBoard, { move, droppedPiece, capturedPiece, c
   if (move.from) {
     const pieceIndex = newBoard.findIndex(piece => piece && piece.square === move.from);
     newBoard = Immutable.setIn(newBoard, [pieceIndex, 'square'], move.to);
+    // Promotion piece
+    if (!!promotionPiece) {
+      newBoard = Immutable.setIn(newBoard, [pieceIndex, 'promotion'], promotionPiece);
+    }
   // Update dropped piece
   } else {
     newBoard = newBoard.concat({

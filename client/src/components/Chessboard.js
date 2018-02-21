@@ -115,7 +115,7 @@ class Chessboard extends Component {
         return <div key={i} />;
       }
 
-      const { key, piece, square, color } = pieceObj;
+      const { key, piece, square, color, promotion } = pieceObj;
       const { rankIndex, fileIndex } = getIndexes(square, this.props.flipped);
       const style = {transform: `translate(${fileIndex*48}px, ${rankIndex*48}px)`};
 
@@ -134,7 +134,7 @@ class Chessboard extends Component {
             isDraggable={this._canMovePiece(color)}
             onDropPiece={this.handleDropPiece}
             onSelect={() => this.props.onSelectPiece(square, color)}
-            pieceType={piece}
+            pieceType={promotion || piece}
             square={square} />
         </PieceContainer>
       );

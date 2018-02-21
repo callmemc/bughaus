@@ -131,7 +131,6 @@ class GamePage extends Component {
         counters={this.state[`counters${boardNum}`]}
         wPlayer={this.state[`wPlayer${boardNum}`]}
         bPlayer={this.state[`bPlayer${boardNum}`]}
-        promotedSquares={this.state[`promotedSquares${boardNum}`] || {}}
         isFlipped={this.state[`isFlipped${boardNum}`]}
         onFlip={() => this.handleFlip(boardNum)}
         onMove={data => this.handleMove(boardNum, data)}
@@ -158,7 +157,7 @@ class GamePage extends Component {
   }
 
   handleMove = (boardNum, data) => {
-    const { promotedSquares, capturedPiece, moveColor, isCheckmate, move } = data;
+    const { capturedPiece, moveColor, isCheckmate, move } = data;
     const { history, historyIndex } = this.state;
     const newPosition = getNewPosition(data, boardNum, history);
     const newMoves = this.state[`moves${boardNum}`].concat(move);
@@ -171,7 +170,6 @@ class GamePage extends Component {
     this.setState({
       history: history.concat(newPosition),
       [`moves${boardNum}`]: newMoves,
-      [`promotedSquares${boardNum}`]: promotedSquares,
       ...historyIndex === history.length - 1 && {
         historyIndex: history.length
       },
@@ -181,7 +179,6 @@ class GamePage extends Component {
 
     this.socket.emit('move', {
       game: {
-        [`promotedSquares${boardNum}`]: promotedSquares,
         [`moves${boardNum}`]: newMoves,
         ...isCheckmate && { winner }
       },

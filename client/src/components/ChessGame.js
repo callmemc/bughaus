@@ -28,7 +28,6 @@ class ChessGame extends Component {
     onMove: PropTypes.func.isRequired,
 
     moves: PropTypes.array,
-    promotedSquares: PropTypes.object,
     isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
   }
 
@@ -46,8 +45,6 @@ class ChessGame extends Component {
     this.chess = new chessjs.Chess(props.fen);
 
     this.state = {
-      /* State that is updatable by parent. See note above componentWillReceiveProps() */
-      promotedSquares: props.promotedSquares || {},   // Holds keys of all squares that have promoted pieces
 
       /* Describe board, calculated based off this.chess object */
       inCheck: false,
@@ -65,7 +62,7 @@ class ChessGame extends Component {
     this._updateBoard();
   }
 
-  // NOTE: This use of 2 sources of truth (fen & promotedSquares) is dangerous.
+  // NOTE: This use of 2 sources of truth for fen is dangerous.
   //  Relies on componentWillReceiveProps to keep synced with updates from server through socket.
   //  But problems with other options:
   //  - Annoying to have to store state in parent just for the reason of keeping state in sync w/ socket,
@@ -79,10 +76,6 @@ class ChessGame extends Component {
     if (nextProps.fen !== this.props.fen) {
       this.chess = new chessjs.Chess(nextProps.fen);
       this._updateBoard();
-    }
-
-    if (nextProps.promotedSquares !== this.state.promotedSquares) {
-      this.setState({ promotedSquares: nextProps.promotedSquares });
     }
   }
 
@@ -272,7 +265,7 @@ class ChessGame extends Component {
     const moveResult = this.chess.move({ from, to, promotion: promotionPiece });
 
     this.setState({ activePromotion: undefined });
-    this._makeMove({ capturedPiece: moveResult.captured, from, to, isPromotion: true });
+    this._makeMove({ capturedPiece: moveResult.captured, from, to, promotionPiece });
   }
 
   handleSelectPiece = (square, pieceColor) => {
@@ -325,23 +318,17 @@ class ChessGame extends Component {
     // }
   }
 
-  _makeMove({ capturedPiece, capturedSquare, droppedPieceIndex, droppedPiece, from, to, isPromotion, piece }) {
-    // If move captures a promoted piece, turn it back to pawn
-    if (capturedPiece && this.state.promotedSquares[to]) {
-      delete this.state.promotedSquares[to];
-      this.setState({ promotedSquares: {...this.state.promotedSquares} });
-      capturedPiece = 'p';
+  _makeMove({ capturedPiece, capturedSquare, droppedPieceIndex, droppedPiece, from, to, promotionPiece, piece }) {
+    if (capturedPiece && !capturedSquare) {
+      capturedSquare = to;
     }
 
-    // If moving a promoted piece, update tracked square
-    if (this.state.promotedSquares[from] || isPromotion) {
-      // If move is not a new promotion, remove previously tracked square
-      if (this.state.promotedSquares[from]) {
-        delete this.state.promotedSquares[from];
+    // If move captures a promoted piece, turn it back to pawn
+    if (capturedPiece) {
+      const { promotion } = this.props.board.find(piece => piece && piece.square === to);
+      if (promotion) {
+        capturedPiece = 'p';
       }
-      this.setState({
-        promotedSquares: {...this.state.promotedSquares, [to]: true}
-      });
     }
 
     // Check if 'checkmated' player can block checkmate with a dropped piece
@@ -355,10 +342,10 @@ class ChessGame extends Component {
       capturedSquare,
       droppedPieceIndex,
       droppedPiece,
+      promotionPiece,
       fen: this.chess.fen(),
       isCheckmate,
       moveColor: this.state.turn,
-      promotedSquares: this.state.promotedSquares,
       move: {
         from,
         to,
