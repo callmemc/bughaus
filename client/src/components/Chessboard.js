@@ -1,4 +1,4 @@
-import React, { Component, PureComponent } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import styled from 'styled-components';
@@ -29,7 +29,7 @@ const CheckedKingOverlay = styled.div`
   position: absolute;
 `;
 
-class Chessboard extends Component {
+class Chessboard extends PureComponent {
   static propTypes = {
     flipped: PropTypes.bool,
     isFrozen: PropTypes.bool,

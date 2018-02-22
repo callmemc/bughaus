@@ -344,8 +344,8 @@ class GamePage extends Component {
     return this.props.match.params.gameId;
   }
 
-  updateTimer = (data) => {
-    this.setState(data);
+  updateTimer = ({ counters0, counters1 }) => {
+    this.setState({ counters0, counters1 });
   }
 
   updateGame = (game) => {

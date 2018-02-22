@@ -26,7 +26,6 @@ class ChessGame extends Component {
     bPlayer: PropTypes.object,
     isGameOver: PropTypes.bool,
     onMove: PropTypes.func.isRequired,
-
     moves: PropTypes.array,
     isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
   }

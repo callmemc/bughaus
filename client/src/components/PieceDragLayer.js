@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { DragLayer } from 'react-dnd';
 import PieceImage from './PieceImage';
 
-class PieceDragLayer extends Component {
+class PieceDragLayer extends PureComponent {
   render() {
     if (!this.props.isDragging || this.props.itemType !== 'PIECE') {
       return null;
