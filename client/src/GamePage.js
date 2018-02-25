@@ -30,7 +30,7 @@ class GamePage extends Component {
     this.state = {
       isFlipped0: false,
       isFlipped1: true,
-      moveIndex: 0
+      historyIndex: 0
     };
   }
   componentDidMount() {
