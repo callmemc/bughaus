@@ -94,7 +94,7 @@ class Chessboard extends PureComponent {
   }
 
   _canMovePiece(color) {
-    const username = _.get(this.props[`${color}Player`], 'username');
+    const username = this.props[`${color}Player`];
     return !this.props.isFrozen &&
       (username === this.props.username) &&
       (this.props.turn === color);

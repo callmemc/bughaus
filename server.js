@@ -5,6 +5,7 @@ import socket from 'socket.io';
 import path from 'path';
 import socketServer from './socketServer';
 import * as db from './db';
+import _ from 'lodash';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -54,12 +55,15 @@ db.connectClient().then((dbInstance) => {
     const gameId = req.params.id;
 
     db.getGame(gameId).then((result) => {
+      // Username associated with session and game
       const { username } = req.session[gameId] || {};
-
-      res.json({
-        ...result,
-        username
-      });
+      res.json(_.extend(
+        result,
+        {
+          username: username || null,
+          connections: socketServer.connections[gameId] || []
+        }
+      ));
     });
   });
 

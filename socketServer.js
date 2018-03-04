@@ -9,6 +9,7 @@ let IO;
 //  For now, enabled session affinity (https://devcenter.heroku.com/articles/node-websockets#option-2-socket-io-start-the-app)
 //  Also see: https://devcenter.heroku.com/articles/websockets#application-architecture
 const timers = {};
+const connections = {};
 
 function connectSocket(socket) {
   // Each socket is associated with just one game id
@@ -21,13 +22,17 @@ function connectSocket(socket) {
   socket.join(socketGameId);
 
   // If player is found, update player's game status to connected
-  updateUserStatus('CONNECTED');
+  updateConnection(true);
 
-  socket.on('move', ({ game, newPosition, boardNum, nextColor, isCapture }) => {
+  /**
+   *  1. Store updated game in db
+   *  2. Update other clients
+   */
+  socket.on('move', ({ data, boardNum, nextColor, isCapture }) => {
     // If checkmate, end timer. TODO: Restart timer
     const timer = timers[socketGameId];
     if (timer) {
-      if (game.winner) {
+      if (data.winner) {
         timer.endTimer();
       } else {
         timer.updateTurn(boardNum, nextColor);
@@ -36,48 +41,30 @@ function connectSocket(socket) {
       console.error('Timer not found');
     }
 
-    socket.to(socketGameId).emit('updateGameFromMove', {
-      game, newPosition, isCapture
+    socket.to(socketGameId).emit('pushMove', {
+      data, boardNum, isCapture
     });
 
-    db.updateGame(socketGameId, game);
-    db.addPosition(socketGameId, newPosition);
+    db.addPosition(socketGameId, data.newPosition);
+    db.addMove(socketGameId, boardNum, data.move);
+    db.updateGame(socketGameId, { winner: data.winner });
   });
 
-  socket.on('setUsername', (data) => {
-    const { gameId, username } = data;
+  /*
+   * Join game as a player
+   */
+  socket.on('join', (data) => {
+    // If all users have joined, start game
+    db.getGame(socketGameId).then((result) => {
+      const { boardNum, color, username, isConnected } = data;
 
-    // Save username for a given game in session
-    socket.request.session[gameId] = { username };
-    socket.request.session.save();
-  });
+      if (!connections[socketGameId]) {
+        connections[socketGameId] = [{}, {}];
+      }
+      connections[socketGameId][boardNum][color] = isConnected;
 
-  socket.on('selectPlayer', (data) => {
-    const { gameId, userKey, username } = data;
-
-    // If all users have joined, start game, and signify that to user
-    db.getGame(gameId).then((result) => {
-      const { wPlayer0, wPlayer1, bPlayer0, bPlayer1 } = result || {};
-
-      // TODO: This is ugly
-      if (
-        ((userKey === 'wPlayer0' && username) || wPlayer0) &&
-        ((userKey === 'wPlayer1' && username) || wPlayer1) &&
-        ((userKey === 'bPlayer0' && username) || bPlayer0) &&
-        ((userKey === 'bPlayer1' && username) || bPlayer1)) {
-
-        // Send flip board data
-        IO.to(socketGameId).emit('startGame',
-          _.extend({
-            wPlayer0: _.get(wPlayer0, 'username'),
-            wPlayer1: _.get(wPlayer1, 'username'),
-            bPlayer0: _.get(bPlayer0, 'username'),
-            bPlayer1: _.get(bPlayer1, 'username')
-          }, {
-            [userKey]: username
-          })
-        );
-
+      const allConnected = _.every(connections[socketGameId], board => board.w && board.b);
+      if (allConnected) {
         // Start game timer
         const timer = new Timer();
         timers[socketGameId] = timer;
@@ -85,61 +72,66 @@ function connectSocket(socket) {
       }
     });
 
-    // Update the game to reflect the username
-    // const username = socket.request.session[gameId].username;
-    const gameData = {
-      [userKey]: { username, status: 'CONNECTED' }
-    };
-    IO.to(socketGameId).emit('updateGame', gameData);
-    db.updateGame(gameId, gameData);
+    IO.to(socketGameId).emit('pushJoin', data);
+    db.updatePlayer(socketGameId, data);
   });
 
-  socket.on('deselectPlayer', (data) => {
-    const { gameId, userKey } = data;
+  /*
+   * Store username associated with a game in the user's session
+   */
+  socket.on('setUsername', (data) => {
+    const { username } = data;
 
-    const gameData = { [userKey]: null };
-
-    IO.to(socketGameId).emit('updateGame', gameData);
-    db.updateGame(gameId, gameData);
+    // Save username for a given game in session
+    socket.request.session[socketGameId] = { username };
+    socket.request.session.save();
   });
 
-  // Update player's game status to disconnected
+  /*
+   * Update player's game status to disconnected
+   */
   socket.on('disconnect', () => {
     console.debug('disconnect', socketGameId);
     if (!socketGameId) {
       return;
     }
 
-    updateUserStatus('DISCONNECTED');
+    updateConnection(false);
   });
 
-  function updateUserStatus(status) {
+  /******************** HELPERS *********************/
+
+  function updateConnection(isConnected) {
     const { username } = socket.request.session[socketGameId] || {};
     if (!username) {
       return;
     }
 
     db.getGame(socketGameId).then((result) => {
-      // TODO: Move this into constants module
-      const userKeys = ['wPlayer0', 'wPlayer1', 'bPlayer0', 'bPlayer1'];
-      const gameData = _.reduce(userKeys, (memo, key) => {
-        if (_.get(result[key], 'username') === username) {
-          memo[key] = { username, status };
-        }
-        return memo;
-      }, {});
+      const initialConnections = connections[socketGameId] || [{}, {}];
 
-      if (!_.isEmpty(gameData)) {
-        IO.to(socketGameId).emit('updateGame', gameData);
-        db.updateGame(socketGameId, gameData);
-      }
+      // Update connections for all user's players
+      connections[socketGameId] = _.reduce(result.currentGames, (memo, game, boardNum) => {
+        ['w', 'b'].forEach(color => {
+          if (game[`${color}Player`] === username) {
+            memo[boardNum][color] = isConnected;
+          }
+        });
+        return memo;
+      }, initialConnections);
+
+      IO.to(socketGameId).emit('updateGame', {
+        connections: connections[socketGameId]
+      });
     });
   }
 
-  function emitTime({ counters0, counters1 }) {
-    // Write timers to db in case server crashes
-    db.updateGame(socketGameId, { counters0, counters1 });
-    IO.to(socketGameId).emit('timer', { counters0, counters1 });
+
+  function emitTime(timers) {
+    // TODO: Write timers to db in case server crashes
+      // Cache in memory, with db as fallback
+    // db.updateGame(socketGameId, timers);
+    IO.to(socketGameId).emit('updateGame', { timers });
   }
 
   function endGame({ boardNum, color }) {
@@ -153,5 +145,6 @@ export default {
   attach: function attach(io) {
     io.on('connection', connectSocket);
     IO = io;
-  }
+  },
+  connections       // TODO: Move to own module
 };

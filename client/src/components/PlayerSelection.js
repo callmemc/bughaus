@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import _ from 'lodash';
 import { getTeam } from '../utils';
 
 const PlayerSelectionContainer = styled.div`
@@ -12,7 +13,7 @@ const PlayerSelectionContainer = styled.div`
 
 class PlayerSelection extends Component {
   render() {
-    const { username } = this.props;
+    const { username, connections } = this.props;
 
     return (
       <div>
@@ -25,6 +26,7 @@ class PlayerSelection extends Component {
               onSelectPlayer={this.props.onSelectPlayer}
               onDeselectPlayer={this.props.onDeselectPlayer}
               player={this.props.bPlayer0}
+              isConnected={_.get(connections[0], 'b')}
               username={username} />
             <PlayerSelectionButton
               color="w"
@@ -32,6 +34,7 @@ class PlayerSelection extends Component {
               onSelectPlayer={this.props.onSelectPlayer}
               onDeselectPlayer={this.props.onDeselectPlayer}
               player={this.props.wPlayer0}
+              isConnected={_.get(connections[0], 'w')}
               username={username} />
           </div>
           <div>
@@ -41,6 +44,7 @@ class PlayerSelection extends Component {
               onSelectPlayer={this.props.onSelectPlayer}
               onDeselectPlayer={this.props.onDeselectPlayer}
               player={this.props.wPlayer1}
+              isConnected={_.get(connections[1], 'w')}
               username={username} />
             <PlayerSelectionButton
               color="b"
@@ -48,6 +52,7 @@ class PlayerSelection extends Component {
               onSelectPlayer={this.props.onSelectPlayer}
               onDeselectPlayer={this.props.onDeselectPlayer}
               player={this.props.bPlayer1}
+              isConnected={_.get(connections[1], 'b')}
               username={username} />
           </div>
         </PlayerSelectionContainer>
@@ -102,16 +107,14 @@ class PlayerSelectionButton extends Component {
   };
 
   render() {
-    const { color, boardNum, player } = this.props;
-    const { username, status } = player || {};
+    const { color, boardNum, player, isConnected } = this.props;
     const teamNum = getTeam({ color, boardNum });
     const isSelected = this._isSelected();
-    const isTaken = status === 'CONNECTED';
 
     return (
       <PlayerButton
-        disabled={isTaken && !isSelected}
-        isTaken={isTaken}
+        disabled={isConnected && !isSelected}
+        isTaken={isConnected}
         isSelected={this._isSelected()}
         onClick={this.handleClick}>
         <div>
@@ -119,16 +122,16 @@ class PlayerSelectionButton extends Component {
             {getColorLabel(color)}, Team {teamNum}
           </UserLabel>
           <div>
-            {this._renderStatus(status)}
-            {username}
+            {this._renderStatus(isConnected)}
+            {player}
           </div>
         </div>
       </PlayerButton>
     );
   }
 
-  _renderStatus(status) {
-    if (status === 'DISCONNECTED') {
+  _renderStatus(isConnected) {
+    if (!isConnected && this.props.player) {
       return <DisconnectedIcon>&times;</DisconnectedIcon>;
     }
   }
@@ -145,8 +148,7 @@ class PlayerSelectionButton extends Component {
 
   _isSelected() {
     const { username, player } = this.props;
-    const { username: playerUsername } = player || {};
-    return username && playerUsername === username;
+    return username && player === username;
   }
 }
 

@@ -22,8 +22,8 @@ const Username = styled.div`
 class ChessGame extends Component {
   static propTypes = {
     counters: PropTypes.object,
-    wPlayer: PropTypes.object,
-    bPlayer: PropTypes.object,
+    wPlayer: PropTypes.string,
+    bPlayer: PropTypes.string,
     isGameOver: PropTypes.bool,
     onMove: PropTypes.func.isRequired,
     moves: PropTypes.array,
@@ -31,8 +31,6 @@ class ChessGame extends Component {
   }
 
   static defaultProps = {
-    wPlayer: {},
-    bPlayer: {},
     counters: {},
     moves: []
   }
@@ -141,7 +139,7 @@ class ChessGame extends Component {
   }
 
   _getUsername(color) {
-    return _.get(this.props[`${color}Player`], 'username');
+    return this.props[`${color}Player`];
   }
 
   _renderUsername(color) {
@@ -397,7 +395,7 @@ class ChessGame extends Component {
   }
 
   _canMovePiece(color) {
-    const username = _.get(this.props[`${color}Player`], 'username');
+    const username = this._getUsername(color);
     return username === this.props.username &&
       this.state.turn === color;
   }

@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { DragLayer } from 'react-dnd';
 import PieceImage from './PieceImage';
 
