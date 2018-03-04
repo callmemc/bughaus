@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@std/esm": "^0.18.0",
+    "@std/esm": "^0.24.0",
     "chai": "^4.1.2",
     "concurrently": "^3.5.1",
     "mocha": "^4.0.1"

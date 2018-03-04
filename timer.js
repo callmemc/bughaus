@@ -19,7 +19,7 @@ export default class Timer {
 
   startTimer(emitTime, endGame) {
     this.timer = setInterval(() => {
-      emitTime({ counters0: this.counters[0], counters1: this.counters[1] });
+      emitTime(this.counters);
 
       [0, 1].forEach((boardNum) => {
         const turn = this.turns[boardNum];
