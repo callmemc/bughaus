@@ -80,3 +80,9 @@ export function receiveJoin(color, boardNum, username, isConnected) {
     isConnected
   };
 }
+
+export function clearData() {
+  return {
+    type: 'CLEAR_DATA'
+  };
+}

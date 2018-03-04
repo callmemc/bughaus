@@ -7,12 +7,14 @@ import _ from 'lodash';
 
 const initialState = Immutable({
   connections: [{}, {}],
-  timers: [{}, {}],       // TODO: Need to reset
+  timers: [{}, {}],
   historyIndex: 1
 });
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case 'REQUEST_GAME':
+      return initialState;
     case 'RECEIVE_GAME':
       return Immutable.merge(
         state,

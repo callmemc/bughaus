@@ -35,13 +35,18 @@ class GamePage extends Component {
   componentDidMount() {
     const gameId = this._getGameId();
 
+    // Populate redux game state from api
     this.props.onFetchGame(gameId);
 
+    // Initialize socket connection
     this.socket = startGameConnection(gameId, this.props.dispatch);
-
     this.socket.on('pushMove', ({ isCapture }) => {
       this._playMoveSound({ isCapture });
     });
+  }
+
+  componentWillUnmount() {
+    this.socket.disconnect();
   }
 
   render() {
@@ -140,11 +145,13 @@ class GamePage extends Component {
     const { gameHistory } = this.props;
     const { move, moveColor, isCheckmate, capturedPiece } = data;
     const isCapture = !!capturedPiece;
+
     this.props.onMove(
       boardNum,
       {
         newPosition: getNewPosition(data, boardNum, gameHistory),
-        move,
+        move,       // TODO: Store isCapture and moveColor in move?
+        moveColor,
         isCapture,
         ...isCheckmate && {
           winner: { color: moveColor, boardNum }
