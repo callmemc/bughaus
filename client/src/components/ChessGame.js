@@ -322,7 +322,9 @@ class ChessGame extends Component {
 
     // If move captures a promoted piece, turn it back to pawn
     if (capturedPiece) {
-      const { promotion } = this.props.board.find(piece => piece && piece.square === to);
+      const { promotion } = this.props.board.find(
+        piece => piece.square === capturedSquare
+      );
       if (promotion) {
         capturedPiece = 'p';
       }
