@@ -7,7 +7,7 @@ import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
-import { isMove, getTeam, canBlockCheckmate, getMoveNotation } from '../utils';
+import { isMove, getTeam, canBlockCheckmate, getMoveNotation } from '../utils/moveUtils';
 
 const PlayContainer = styled.div`
   display: flex;

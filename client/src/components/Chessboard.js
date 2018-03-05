@@ -7,7 +7,7 @@ import chessjs from '../chess.js';
 import Square from './Square';
 import Piece from './Piece';
 import './Chessboard.css';
-import { isMove, getSquare, getIndexes } from '../utils';
+import { isMove, getSquare, getIndexes } from '../utils/moveUtils';
 
 const Chess = chessjs.Chess();
 
@@ -111,7 +111,7 @@ class Chessboard extends PureComponent {
     // Note: If you reorder an element in an array while a transition is running, the animation will cut
     //  This is why we must order board determinately by storing them in a board array
     const pieceElements = board.map((pieceObj, i) => {
-      if (pieceObj === null) {
+      if (pieceObj.piece === null) {
         return <div key={i} />;
       }
 

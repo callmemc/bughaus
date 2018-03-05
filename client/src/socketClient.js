@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-import { getOpposingColor } from './utils';
+import { getOpposingColor } from './utils/moveUtils';
 import { receiveMove, receiveJoin, receiveGameUpdate } from './actions';
 
 let socket = null;

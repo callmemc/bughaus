@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import _ from 'lodash';
-import { getTeam } from '../utils';
+import { getTeam } from '../utils/moveUtils';
 
 const PlayerSelectionContainer = styled.div`
   display: flex;

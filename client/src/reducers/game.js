@@ -8,7 +8,8 @@ import _ from 'lodash';
 const initialState = Immutable({
   connections: [{}, {}],
   timers: [{}, {}],
-  historyIndex: 1
+  historyIndex: 1,
+  username: undefined
 });
 
 export default (state = initialState, action) => {

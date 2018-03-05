@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
-import { generateGameId } from './utils';
+import { generateGameId } from './utils/moveUtils';
 import FlatButton from 'material-ui/FlatButton';
 import styled from 'styled-components';
 

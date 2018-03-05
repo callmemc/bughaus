@@ -10,7 +10,7 @@ import ChessGame from './components/ChessGame';
 import PieceDragLayer from './components/PieceDragLayer';
 import PlayerSelectionDialog from './components/PlayerSelectionDialog';
 import HistoryScrubber from './components/HistoryScrubber';
-import { getOpposingBoardNum } from './utils';
+import { getOpposingBoardNum } from './utils/moveUtils';
 import { getNewPosition, getReserve } from './utils/positionUtils';
 import * as sounds from './sounds';
 
