@@ -16,6 +16,7 @@ export default (state = initialState, action) => {
   switch (action.type) {
     case 'REQUEST_GAME':
       return initialState;
+
     case 'RECEIVE_GAME':
       return Immutable.merge(
         state,
