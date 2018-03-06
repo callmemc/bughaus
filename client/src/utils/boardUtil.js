@@ -19,12 +19,14 @@ export default function getNewBoard(lastBoard, moveData) {
   // Update taken piece
   // Note: Keeping null piecePositions as a HACK so element positions don't get moved
   if (capturedSquare) {
-    const takenPieceIndex = newBoard.findIndex(piece => piece.square === capturedSquare);
+    const takenPieceIndex = newBoard.findIndex(
+      ({ square, piece }) => square === capturedSquare
+    );
 
-    newBoard = Immutable.setIn(
+    newBoard = Immutable.update(
       newBoard,
-      [takenPieceIndex, 'piece'],
-      null
+      takenPieceIndex,
+      val => Immutable.merge(val, { square: null, piece: null })
     );
   }
 
