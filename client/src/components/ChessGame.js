@@ -195,12 +195,16 @@ class ChessGame extends Component {
     }
 
     const moveResult = this.chess.move({ from, to });
+    let capturedSquare;
 
     // chess.move() returns null if move was invalid
     if (moveResult) {
-      // Square of pawn that was captured in enpassant is last move
-      const capturedSquare = moveResult.flags === 'e' ?
-        _.last(this.props.moves).to : to;
+
+      if (moveResult.captured) {
+        // Square of pawn that was captured in enpassant is last move
+        capturedSquare = moveResult.flags === 'e' ?
+          _.last(this.props.moves).to : to;
+      }
 
       this._makeMove({
         from, to,
