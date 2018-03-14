@@ -1,25 +1,24 @@
 import Immutable from 'seamless-immutable';
 import _ from 'lodash';
 
-const initialState = Immutable({
-  gamesById: []
-});
+const initialState = Immutable([{}, {}]);
 
 // https://github.com/reactjs/redux/issues/749#issuecomment-141570236
 // Dependent on game state
 export default (state = initialState, action, gameState) => {
+  const { boardNum } = action;
+
   switch (action.type) {
     case 'RECEIVE_GAME':
-      return Immutable.set(
+      return Immutable.merge(
         state,
-        'gamesById',
         getUIState(action.json)
       );
 
     case 'FLIP_BOARD':
       return Immutable.updateIn(
         state,
-        ['gamesById', action.boardNum, 'isFlipped'],
+        [boardNum, 'isFlipped'],
         value => !value
       );
 
@@ -34,9 +33,8 @@ export function getStateFromJoin(state, gameState) {
     _.every(gameState.connections, board => board.w && board.b);
 
   if (allConnected) {
-    state = Immutable.set(
+    state = Immutable.merge(
       state,
-      'gamesById',
       getUIState(gameState)
     );
   }

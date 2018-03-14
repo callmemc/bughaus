@@ -1,30 +1,68 @@
 import Immutable from 'seamless-immutable';
 import _ from 'lodash';
 
+import chessjs from '../../chess.js';
+import { selectPiece, selectPieceFromReserve, selectPromotingPiece } from './selectPiece';
+import move from './move';
+import { getChessData } from '../../utils/chessUtil';
+
 /**
  * Main store for current game
+ *  Minimal state needed to describe game, so that if stored in DB and reloaded
+ *  You would have everything you need to know
+ *  --> State that concerns ALL players
 **/
 
 const initialState = Immutable({
   connections: [{}, {}],
-  timers: [{}, {}],
   historyIndex: 1,
+  timers: [{}, {}],
   username: undefined
 });
 
+function receiveGame(state, action) {
+  const gameHistory = action.json.gameHistory;
+
+  state = Immutable.merge(
+    state,
+    [
+      action.json,
+      { historyIndex: gameHistory.length - 1 }
+    ]
+  );
+
+  // Update chess data
+  [0, 1].forEach(boardNum => {
+    const currentPosition = _.findLast(
+      gameHistory,
+      position => position.boardNum === boardNum
+    );
+    if (!currentPosition) {
+      return;
+    }
+
+    state = Immutable.updateIn(
+      state,
+      ['currentGames', boardNum],
+      val => Immutable.merge(
+        val,
+        getChessData(new chessjs.Chess(currentPosition.fen))
+      )
+    );
+  });
+
+  return state;
+}
+
 export default (state = initialState, action) => {
+  const { boardNum } = action;
+
   switch (action.type) {
     case 'REQUEST_GAME':
       return initialState;
 
     case 'RECEIVE_GAME':
-      return Immutable.merge(
-        state,
-        [
-          action.json,
-          { historyIndex: action.json.gameHistory.length - 1 }
-        ]
-      );
+      return receiveGame(state, action);
 
     case 'RECEIVE_GAME_UPDATE':
       return Immutable.merge(state, action.data);
@@ -35,7 +73,7 @@ export default (state = initialState, action) => {
     // Also see socketMiddleware
     case 'JOIN':
     case 'RECEIVE_JOIN':
-      const { boardNum, color, username, isConnected } = action;
+      const { color, username, isConnected } = action;
       state = Immutable.setIn(
         state,
         ['currentGames', boardNum, `${color}Player`],
@@ -53,37 +91,7 @@ export default (state = initialState, action) => {
     // Also see socketMiddleware
     case 'MOVE':
     case 'RECEIVE_MOVE':
-      const { newPosition, move, winner } = action.data;
-
-      state = Immutable.update(
-        state,
-        'gameHistory',
-        arr => arr.concat(newPosition)
-      );
-
-      state = Immutable.updateIn(
-        state,
-        ['currentGames', action.boardNum, 'moves'],
-        arr => arr.concat(move)
-      );
-
-      // Note: Winner is manually set, rather than calculated from fen, b/c can also lose from timeout
-      if (winner) {
-        state = Immutable.set(
-          state,
-          'winner',
-          winner
-        );
-      }
-
-      // Current behavior: After a move, always update to latest move
-      state = Immutable.set(
-        state,
-        'historyIndex',
-        state.gameHistory.length - 1
-      );
-
-      return state;
+      return move(state, action);
 
     case 'SET_GAME_INDEX':
       let newIndex;
@@ -136,6 +144,13 @@ export default (state = initialState, action) => {
           boardNum === action.boardNum && moveIndex === newMoveIndex
       );
       return setIndex(state, newGameIndex);
+
+    case 'SELECT_PIECE':
+      return selectPiece(state, action);
+      case 'SELECT_PIECE_FROM_RESERVE':
+      return selectPieceFromReserve(state, action);
+    case 'SELECT_PROMOTING_PIECE':
+      return selectPromotingPiece(state, action);
 
     default:
       return state

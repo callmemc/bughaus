@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import Immutable from 'seamless-immutable';
 import getNewBoard from './boardUtil';
 
 /**
@@ -16,25 +16,20 @@ import getNewBoard from './boardUtil';
  *   bDropped: [<Array>]
  * }
 **/
-export function getNewPosition(moveData, boardNum, history) {
-  const { capturedPiece, moveColor, droppedPieceIndex, fen } = moveData;
-  const lastPosition = _.findLast(
-    history,
-    position => position.boardNum === boardNum
-  );
-
+export function getNewPosition(moveData, boardNum, lastPosition) {
+  const { captured, color, droppedPieceIndex, fen } = moveData;
   let { wCaptured, bCaptured, wDropped, bDropped, moveIndex } = lastPosition;
 
-  if (capturedPiece) {
-    if (moveColor === 'w') {
-      bCaptured = bCaptured + capturedPiece;
+  if (captured) {
+    if (color === 'w') {
+      bCaptured = bCaptured + captured;
     } else {
-      wCaptured = wCaptured + capturedPiece;
+      wCaptured = wCaptured + captured;
     }
   }
 
   if (droppedPieceIndex !== undefined)  {
-    if (moveColor === 'w') {
+    if (color === 'w') {
       wDropped = wDropped.concat(droppedPieceIndex);
     } else {
       bDropped = bDropped.concat(droppedPieceIndex);
@@ -57,12 +52,17 @@ export function getNewPosition(moveData, boardNum, history) {
  * @param {string} captured - Concatenates all captured pieces, in the order they were captured
  * @param {Array} droppedArr - Indexes of pieces in captured string that were dropped
  */
+
+// 'nbpp', [1, 0]
 export function getReserve(capturedStr, droppedArr) {
   let result = capturedStr;
-  for (let i = droppedArr.length - 1; i >= 0; i--) {
-    const droppedIndex = droppedArr[i];
-    result = result.slice(0, droppedIndex) + result.slice(droppedIndex + 1);
-  }
+
+  const sortedDroppedIndexes = Immutable.asMutable(droppedArr)
+    .sort((a, b) => b - a);
+
+  sortedDroppedIndexes.forEach(i => {
+    result = result.slice(0, i) + result.slice(i + 1);
+  });
 
   return result;
 }

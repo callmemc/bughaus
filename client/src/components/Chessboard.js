@@ -133,7 +133,7 @@ class Chessboard extends PureComponent {
             color={color}
             isDraggable={this._canMovePiece(color)}
             onDropPiece={this.handleDropPiece}
-            onSelect={() => this.props.onSelectPiece(square, color)}
+            onSelect={this.props.onSelectPiece}
             pieceType={promotion || piece}
             square={square} />
         </PieceContainer>

@@ -27,7 +27,9 @@ export function fetchGame(gameId) {
 
     return fetch(`/api/game/${gameId}`, {
       // Initial server request initiates the session middleware on server
-      credentials: 'include'
+      credentials: 'include',
+      // TODO: investigate this issue, where closing and re-opening tabs doesn't fetch the game
+      cache: 'no-store'
     })
     .then(response => response.json(),
       error => console.log('An error occurred.', error))

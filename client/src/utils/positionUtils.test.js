@@ -8,41 +8,34 @@ import {
 describe('getNewPosition', () => {
   const BOARD_NUM = 0;
   const MOVE_DATA = {
-    capturedPiece: 'p',
-    moveColor: 'w',
-    droppedPieceIndex: 1,
+    captured: 'p',
+    color: 'w',
     fen: 'NEW_FEN',
-    move: {
-      from: 'e4',
-      to: 'd5'
-    }
+    from: 'e4',
+    to: 'd5'
   };
-  const GAME_HISTORY = [
-    {
-      boardNum: 0,
-      fen: '',
-      board: [],
-      moveIndex: 7,
-      wCaptured: 'npbp',
-      bCaptured: 'p',
-      wDropped: [3],
-      bDropped: [1]
-    },
-    {
-      boardNum: 1,
-      fen: '',
-      board: [],
-      moveIndex: 5,
-      wCaptured: 'p',
-      bCaptured: 'bp',
-      wDropped: [],
-      bDropped: []
-    }
-  ];
+  const LAST_POSITION = {
+    boardNum: 0,
+    fen: '',
+    board: [
+      {
+        key: 'e4', square: 'e4', piece: 'p', color: 'w'
+      },
+      {
+        key: 'd5', square: 'd5', piece: 'p', color: 'b'
+      }
+    ],
+    moveIndex: 7,
+    wCaptured: 'npbp',
+    bCaptured: 'p',
+    wDropped: [3],
+    bDropped: [1]
+  };
+
   let newPosition;
 
   beforeAll(() => {
-    newPosition = getNewPosition(MOVE_DATA, BOARD_NUM, GAME_HISTORY);
+    newPosition = getNewPosition(MOVE_DATA, BOARD_NUM, LAST_POSITION);
   });
 
   it('updates the captured queues', () => {
@@ -51,7 +44,7 @@ describe('getNewPosition', () => {
   });
 
   it('updates the dropped arrays', () => {
-    expect(newPosition.wDropped).toEqual([3, 1]);
+    expect(newPosition.wDropped).toEqual([3]);
     expect(newPosition.bDropped).toEqual([1]);
   });
 
@@ -71,11 +64,14 @@ describe('getReserve', () => {
     expect(getReserve('', [])).toEqual('');
   });
 
-  it('removes a dropped pieces from the captured queue', () => {
+  it('removes a dropped piece from the captured queue', () => {
     expect(getReserve('nbp', [1])).toEqual('np');
   })
 
   it('removes multiple dropped pieces from the captured queue', () => {
     expect(getReserve('nbpp', [0, 1])).toEqual('pp');
+    expect(getReserve('nbpp', [1, 3])).toEqual('np');
+    expect(getReserve('nbpp', [1, 0])).toEqual('pp');
+    expect(getReserve('nbpp', [3, 1])).toEqual('np');
   });
 });

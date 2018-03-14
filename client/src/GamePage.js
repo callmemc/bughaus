@@ -11,8 +11,7 @@ import PieceDragLayer from './components/PieceDragLayer';
 import PlayerSelectionDialog from './components/PlayerSelectionDialog';
 import HistoryScrubber from './components/HistoryScrubber';
 import { getOpposingBoardNum } from './utils/moveUtils';
-import { getNewPosition, getReserve } from './utils/positionUtils';
-import * as sounds from './sounds';
+import { getReserve } from './utils/positionUtils';
 
 import { fetchGame, move, join, setUsername } from './actions';
 import { setGameIndex, setMoveIndex, flipBoard } from './actions/gameUI';
@@ -40,9 +39,6 @@ class GamePage extends Component {
 
     // Initialize socket connection
     this.socket = startGameConnection(gameId, this.props.dispatch);
-    this.socket.on('pushMove', ({ isCapture }) => {
-      this._playMoveSound({ isCapture });
-    });
   }
 
   componentWillUnmount() {
@@ -92,7 +88,7 @@ class GamePage extends Component {
 
   _renderChessGame(boardNum) {
     const { gameHistory: history, historyIndex,
-      currentGames, winner, gamesUIById, username, timers } = this.props;
+      currentGames, winner, gameUI, username, timers } = this.props;
 
     if (!history || !currentGames) {
       return;
@@ -113,23 +109,23 @@ class GamePage extends Component {
 
     const { board, fen, wDropped, bDropped, moveIndex } = boardPosition;
     const { wCaptured, bCaptured } = otherBoardPosition;
-    const { wPlayer, bPlayer, moves } = currentGames[boardNum];
 
+    // TODO: selector for getReserve()
     return (
       <ChessGame
         boardNum={boardNum}
+        {...currentGames[boardNum]}
+
+        position={boardPosition}
+
         fen={fen}
-        moves={moves}
         board={board}
         wReserve={getReserve(wCaptured, wDropped)}
         bReserve={getReserve(bCaptured, bDropped)}
         moveIndex={moveIndex}
         counters={timers[boardNum]}
-        wPlayer={wPlayer}
-        bPlayer={bPlayer}
-        isFlipped={_.get(gamesUIById[boardNum], 'isFlipped')}
+        isFlipped={_.get(gameUI[boardNum], 'isFlipped')}
         onFlip={() => this.props.onFlip(boardNum)}
-        onMove={data => this.handleMove(boardNum, data)}
         isGameOver={!!winner}
         winner={winner}
         username={username}
@@ -139,27 +135,6 @@ class GamePage extends Component {
         onLastMove={this.handleGameLastMove}
         onSelectMove={(index) => this.props.onSetMoveIndex(boardNum, index)} />
     );
-  }
-
-  handleMove = (boardNum, data) => {
-    const { gameHistory } = this.props;
-    const { move, moveColor, isCheckmate, capturedPiece } = data;
-    const isCapture = !!capturedPiece;
-
-    this.props.onMove(
-      boardNum,
-      {
-        newPosition: getNewPosition(data, boardNum, gameHistory),
-        move,       // TODO: Store isCapture and moveColor in move?
-        moveColor,
-        isCapture,
-        ...isCheckmate && {
-          winner: { color: moveColor, boardNum }
-        }
-      }
-    );
-
-    this._playMoveSound({ isCapture });
   }
 
   handleGameFirstMove = () => {
@@ -207,14 +182,6 @@ class GamePage extends Component {
     }
   }
 
-  _playMoveSound({ isCapture }) {
-    if (isCapture) {
-      sounds.playCaptureSound();
-    } else {
-      sounds.playMoveSound();
-    }
-  }
-
   _getGameId() {
     return this.props.match.params.gameId;
   }
@@ -222,7 +189,7 @@ class GamePage extends Component {
 
 const mapStateToProps = state => ({
   ...state.game,
-  gamesUIById: state.gameUI.gamesById
+  gameUI: state.gameUI
 });
 
 const mapDispatchToProps = dispatch => {

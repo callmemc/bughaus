@@ -13,12 +13,13 @@ import Immutable from 'seamless-immutable';
  * }
 **/
 export default function getNewBoard(lastBoard, moveData) {
-  const { move, droppedPiece, capturedSquare, moveColor, promotionPiece } = moveData;
+  const { from, to, droppedPiece, captured, color, promotion } = moveData;
   let newBoard = lastBoard;
 
   // Update taken piece
   // Note: Keeping null piecePositions as a HACK so element positions don't get moved
-  if (capturedSquare) {
+  if (captured) {
+    const capturedSquare = moveData.eSquare || to;
     const takenPieceIndex = newBoard.findIndex(
       ({ square, piece }) => square === capturedSquare
     );
@@ -31,28 +32,28 @@ export default function getNewBoard(lastBoard, moveData) {
   }
 
   // Update moved piece
-  if (move.from) {
-    const pieceIndex = newBoard.findIndex(piece => piece.square === move.from);
+  if (from) {
+    const pieceIndex = newBoard.findIndex(piece => piece.square === from);
     newBoard = Immutable.setIn(
       newBoard,
       [pieceIndex, 'square'],
-      move.to
+      to
     );
     // Promotion piece
-    if (promotionPiece) {
+    if (promotion) {
       newBoard = Immutable.setIn(
         newBoard,
         [pieceIndex, 'promotion'],
-        promotionPiece
+        promotion
       );
     }
   // Update dropped piece
   } else {
     newBoard = newBoard.concat({
       key: `drop_${newBoard.length}`,    // key must be unique
-      square: move.to,
+      square: to,
       piece: droppedPiece,
-      color: moveColor
+      color
     });
   }
 

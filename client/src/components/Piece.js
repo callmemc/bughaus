@@ -9,7 +9,8 @@ class Piece extends Component {
   static propTypes = {
     color: PropTypes.string.isRequired,
     isDraggable: PropTypes.bool,
-    pieceType: PropTypes.string.isRequired
+    pieceType: PropTypes.string.isRequired,
+    square: PropTypes.string
   }
 
   componentDidMount() {
@@ -25,10 +26,15 @@ class Piece extends Component {
     return this.props.connectDropTarget(connectDragSource(
       <div className="Piece"
         style={{opacity}}
-        onMouseDown={this.props.onSelect}>
+        onMouseDown={this.handleSelect}>
         <PieceImage color={color} type={pieceType} />
       </div>
     ));
+  }
+
+  handleSelect = () => {
+    const { color, square } = this.props;
+    this.props.onSelect(square, color);
   }
 }
 

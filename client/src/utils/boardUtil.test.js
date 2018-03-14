@@ -18,10 +18,8 @@ describe('moving a piece', () => {
       }
     ],
     {
-      move: {
-        from: 'a2',
-        to: 'a3'
-      },
+      from: 'a2',
+      to: 'a3'
     }
   );
 
@@ -64,11 +62,9 @@ describe('capturing a piece', () => {
         }
       ],
       {
-        move: {
-          from: 'e4',
-          to: 'a3'
-        },
-        capturedSquare: 'a3'
+        from: 'e4',
+        to: 'a3',
+        captured: 'p'
       }
     );
 
@@ -112,6 +108,7 @@ describe('dropping a piece', () => {
       "color": "w"
     }
   ];
+
   it('updates the positions', () => {
     const NEW_BOARD_POSITIONS = getNewBoard(
       [
@@ -129,11 +126,9 @@ describe('dropping a piece', () => {
         }
       ],
       {
-        move: {
-          to: 'c5'
-        },
+        to: 'c5',
         droppedPiece: 'b',
-        moveColor: 'w'
+        color: 'w'
       }
     );
 
@@ -147,11 +142,9 @@ describe('dropping a piece', () => {
       getNewBoard(
         EXPECTED_CAPTURE_RESULT,
         {
-          move: {
-            from: 'c5',
-            to: 'a3'
-          },
-          capturedSquare: 'a3'
+          from: 'c5',
+          to: 'a3',
+          captured: 'p'
         }
       )
     ).toEqual(
@@ -177,6 +170,5 @@ describe('dropping a piece', () => {
       ]
     );
   });
-
 });
 

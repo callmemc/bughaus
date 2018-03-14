@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import styled from 'styled-components';
-import chessjs from '../chess.js';
 import Chessboard from './Chessboard';
 import PromotionDialog from './PromotionDialog';
 import Sidebar from './Sidebar';
 import Reserve from './Reserve';
-import { isMove, getTeam, canBlockCheckmate, getMoveNotation } from '../utils/moveUtils';
+import { isMove, getTeam } from '../utils/moveUtils';
+
+import { connect } from 'react-redux';
+import { dropPiece, dropPieceFromReserve } from '../actions/dropPiece';
 
 const PlayContainer = styled.div`
   display: flex;
@@ -21,12 +23,21 @@ const Username = styled.div`
 
 class ChessGame extends Component {
   static propTypes = {
+    /* Describe board state */
+    activeMoves: PropTypes.array,       // Array of valid moves for activePiece
+    activePiece: PropTypes.object,      // Piece selected by the user
+    activePromotion: PropTypes.object,  // Object holding promotion info before user has selected the piece to promote to
+
+    /* "Chess data" to show on board, calculated by creating an object from the chess.js library  */
+    inCheck: PropTypes.bool,
+    inCheckmate: PropTypes.bool,
+    turn: PropTypes.string,              // 'w' or 'b'
+
     counters: PropTypes.object,
     wPlayer: PropTypes.string,
     bPlayer: PropTypes.string,
     isGameOver: PropTypes.bool,
-    onMove: PropTypes.func.isRequired,
-    moves: PropTypes.array,
+    moves: PropTypes.array,             // History of moves
     isFlipped: PropTypes.bool           // true if board is oriented w/ white at the bottom
   }
 
@@ -35,54 +46,13 @@ class ChessGame extends Component {
     moves: []
   }
 
-  constructor(props) {
-    super(props);
-
-    // Temporarily storing mutated chess object in component
-    this.chess = new chessjs.Chess(props.fen);
-
-    this.state = {
-
-      /* Describe board, calculated based off this.chess object */
-      inCheck: false,
-      inCheckmate: false,
-      moves: undefined,       // Array of valid moves
-      turn: undefined,        // 'w' or 'b'
-
-      /* Describe board state */
-      activePromotion: undefined,   // Object holding promotion info before user has selected piece
-      activePiece: undefined        // Piece selected by the user
-    };
-  }
-
-  componentDidMount() {
-    this._updateBoard();
-  }
-
-  // NOTE: This use of 2 sources of truth for fen is dangerous.
-  //  Relies on componentWillReceiveProps to keep synced with updates from server through socket.
-  //  But problems with other options:
-  //  - Annoying to have to store state in parent just for the reason of keeping state in sync w/ socket,
-  //    when only the relevant board cares about this info
-  //  - Not a good idea to have 1 socket per board
-  // Note: Reserves can be updated by either board, so they live with the parent
-  // TODO: Best solution is probably extract this state to a Redux store, that handles
-  //  syncing with the socket
-  componentWillReceiveProps (nextProps) {
-    // If new move, update board
-    if (nextProps.fen !== this.props.fen) {
-      this.chess = new chessjs.Chess(nextProps.fen);
-      this._updateBoard();
-    }
-  }
-
   render() {
     if (!this.props.moves) {
       return <div />;
     }
 
     const { isFlipped, isGameOver, wReserve, bReserve } = this.props;
-    const activeSquare = _.get(this.state.activePiece, 'square');
+    const activeSquare = _.get(this.props.activePiece, 'square');
     const {
       from: prevFromSquare,
       to: prevToSquare
@@ -102,8 +72,8 @@ class ChessGame extends Component {
             boardNum={this.props.boardNum}
             activeSquare={activeSquare}
             flipped={this.props.isFlipped}
-            moves={this.state.moves}
-            inCheck={this.state.inCheck}
+            moves={this.props.activeMoves}
+            inCheck={this.props.inCheck}
             isFrozen={this._isFrozen()}
             prevFromSquare={prevFromSquare}
             prevToSquare={prevToSquare}
@@ -111,7 +81,7 @@ class ChessGame extends Component {
             onDropPieceFromReserve={this.handleDropPieceFromReserve}
             onSelectPiece={this.handleSelectPiece}
             onSelectSquare={this.handleSelectSquare}
-            turn={this.state.turn}
+            turn={this.props.turn}
             wPlayer={this.props.wPlayer}
             bPlayer={this.props.bPlayer}
             username={this.props.username} />
@@ -121,7 +91,7 @@ class ChessGame extends Component {
             counters={this.props.counters}
             bottomColor={bottomColor}
             topColor={topColor}
-            inCheckmate={this.state.inCheckmate}
+            inCheckmate={this.props.inCheckmate}
             isGameOver={isGameOver}
             onFirstMove={this.props.onFirstMove}
             onPrevMove={this.props.onPrevMove}
@@ -129,7 +99,7 @@ class ChessGame extends Component {
             onLastMove={this.props.onLastMove}
             onSelectMove={this.props.onSelectMove}
             onFlip={this.props.onFlip}
-            turn={this.state.turn} />
+            turn={this.props.turn} />
         </PlayContainer>
         {this._renderUsername(bottomColor)}
         {this._renderReserve(bottomColor, bottomReserve)}
@@ -158,11 +128,11 @@ class ChessGame extends Component {
   }
 
   _renderReserve(color, queue) {
-    const { activePiece, turn } = this.state;
+    const { activePiece, turn } = this.props;
     const isPlayer = this._getUsername(color) === this.props.username;
 
     let activeIndex;
-    if (activePiece && activePiece.type === 'reserve' && activePiece.color === color) {
+    if (activePiece && activePiece.type === 'reserve' && turn === color) {
       activeIndex = activePiece.index;
     }
 
@@ -175,98 +145,80 @@ class ChessGame extends Component {
       queue={queue} />;
   }
 
-  handleDropPiece = ({from, to, drag}) => {
-    if (!this.state.moves) {
-      return;
-    }
+  handleDropPiece = ({from, to }) => {
+    // todo: this._isMove(square) on callback
+    // if (!this.state.moves) {
+    //   return;
+    // }
 
-    const promotionMoves = this.state.moves.filter(move =>
+    // TODO: Selector
+    const promotionMoves = this.props.activeMoves.filter(move =>
       move.from === from && move.to === to && move.promotion);
 
     // If promotion
     if (promotionMoves.length > 0) {
-      this.setState({
-        activePromotion: {
-          from, to,
-          pieces: promotionMoves.map(move => move.promotion)
-        }
-      });
-      return;
-    }
-
-    const moveResult = this.chess.move({ from, to });
-    let capturedSquare;
-
-    // chess.move() returns null if move was invalid
-    if (moveResult) {
-
-      if (moveResult.captured) {
-        // Square of pawn that was captured in enpassant is last move
-        capturedSquare = moveResult.flags === 'e' ?
-          _.last(this.props.moves).to : to;
-      }
-
-      this._makeMove({
+      this.props.dispatch({
+        type: 'SELECT_PROMOTING_PIECE',
+        boardNum: this.props.boardNum,
         from, to,
-        capturedPiece: moveResult.captured,
-        piece: moveResult.piece,
-        capturedSquare
+        pieces: promotionMoves.map(move => move.promotion)
       });
+    } else {
+      const action = dropPiece({
+        boardNum: this.props.boardNum,
+        from,
+        to,
+        lastPosition: this.props.position
+      });
+
+      if (action) {
+        this.props.dispatch(action);
+      }
     }
   }
 
-  handleDropPieceFromReserve = ({ index, type, to, color }) => {
-    // Disallow dropping pawns on back row
-    const rank = to[1];
-    if (type === 'p' && (rank === '8' || rank === '1')) {
-      return;
-    }
+  handleDropPieceFromReserve = ({ index, type, to }) => {
+    const action = dropPieceFromReserve({
+      boardNum: this.props.boardNum,
+      index,
+      to,
+      pieceType: type,
+      lastPosition: this.props.position
+    });
 
-    const moveResult = this.chess.put({ type, color: this.state.turn }, to);
-
-    // If in check, don’t allow player to drop piece that doesn’t block the check
-    if (this.chess.in_check()) {
-      // Undo move
-      this.chess.remove(to);
-      return;
-    }
-
-    if (moveResult) {
-      // Have to manually modify fen
-      // TODO: Think about forking/wrapping chess.js library and adding this as a function
-      const tokens = this.chess.fen().split(' ');
-
-      // Advance turn
-      tokens[1] = (tokens[1] === 'w') ? 'b' : 'w';
-
-      // Clear en passant square
-      tokens[3] = '-';
-
-      // Passing in 'force' option to force the load of positions that are invalid
-      //  in a normal game of chess, but are valid in bughouse (e.g. 9 pawns)
-      this.chess.load(tokens.join(' '), {force: true});
-
-      this._makeMove({ droppedPieceIndex: index, droppedPiece: type, to });
+    if (action) {
+      this.props.dispatch(action);
     }
   }
 
-  handleSelectPieceFromReserve = (index, color, piece) => {
+  handleSelectPieceFromReserve = (index, color, pieceType) => {
     if (this._isFrozen()) {
       return;
     }
 
-    this.setState({
-      activePiece: { type: 'reserve', index, color, piece },
-      moves: undefined
+    this.props.dispatch({
+      type: 'SELECT_PIECE_FROM_RESERVE',
+      boardNum: this.props.boardNum,
+      index,
+      color,
+      pieceType
     });
   }
 
-  handleSelectPromotion = (promotionPiece) => {
-    const { from, to } = this.state.activePromotion;
-    const moveResult = this.chess.move({ from, to, promotion: promotionPiece });
+  handleSelectPromotion = (promotion) => {
+    const { from, to } = this.props.activePromotion;
 
-    this.setState({ activePromotion: undefined });
-    this._makeMove({ capturedPiece: moveResult.captured, from, to, promotionPiece });
+    const action = dropPiece({
+      boardNum: this.props.boardNum,
+      from,
+      to,
+      promotion,
+      lastPosition: this.props.position
+    });
+
+    if (action) {
+      this.props.dispatch(action);
+    }
   }
 
   handleSelectPiece = (square, pieceColor) => {
@@ -274,18 +226,18 @@ class ChessGame extends Component {
       return;
     }
 
-    const { activePiece } = this.state;
+    const { activePiece } = this.props;
     const activePieceType = _.get(activePiece, 'type');
     // If a valid board move is detected, make the move
     if (activePieceType === 'board' && this._isMove(square)) {
-      this.handleDropPiece({from: activePiece.square, to: square});
-    // Else if a valid drop from reserve move is detected, make the move
-    } else if (this._canMovePiece(pieceColor)) {
-      // else
-      // select it as the new active piece
-      this.setState({
-        activePiece: { type: 'board', square },
-        moves: this.chess.moves({ verbose: true, square })
+      this.handleDropPiece({ from: activePiece.square, to: square });
+    // Else select it as the new active piece
+    } else {
+      this.props.dispatch({
+        type: 'SELECT_PIECE',
+        boardNum: this.props.boardNum,
+        square,
+        color: pieceColor
       });
     }
   }
@@ -295,7 +247,7 @@ class ChessGame extends Component {
       return;
     }
 
-    const { activePiece } = this.state;
+    const { activePiece } = this.props;
     const activePieceType = _.get(activePiece, 'type');
     // If a valid board move is detected, make the move
     if (activePieceType === 'board' && this._isMove(square)) {
@@ -304,80 +256,19 @@ class ChessGame extends Component {
     } else if (activePieceType === 'reserve') {
       this.handleDropPieceFromReserve({
         index: activePiece.index,
-        type: activePiece.piece,
-        color: activePiece.color,
+        type: activePiece.pieceType,
         to: square
       });
     }
-
-    // TODO: Allow deselection of piece
-    // if (this.state.activePiece === square) {
-    //   this.setState({
-    //     activePiece: undefined,
-    //     moves: undefined
-    //   });
-    // }
-  }
-
-  _makeMove({ capturedPiece, capturedSquare, droppedPieceIndex, droppedPiece, from, to, promotionPiece, piece }) {
-    if (capturedPiece && !capturedSquare) {
-      capturedSquare = to;
-    }
-
-    // If move captures a promoted piece, turn it back to pawn
-    if (capturedPiece) {
-      const { promotion } = this.props.board.find(
-        piece => piece.square === capturedSquare
-      );
-      if (promotion) {
-        capturedPiece = 'p';
-      }
-    }
-
-    // Check if 'checkmated' player can block checkmate with a dropped piece
-    let isCheckmate = this.chess.in_checkmate();
-    if (isCheckmate) {
-      isCheckmate = !canBlockCheckmate(this.chess);
-    }
-
-    this.props.onMove({
-      capturedPiece,
-      capturedSquare,
-      droppedPieceIndex,
-      droppedPiece,
-      promotionPiece,
-      fen: this.chess.fen(),
-      isCheckmate,
-      moveColor: this.state.turn,
-      move: {
-        from,
-        to,
-        notation: getMoveNotation({
-          piece, from, to, isCaptureMove: !!capturedPiece, droppedPiece
-        })
-      }
-    });
-
-    this._updateBoard();
-  }
-
-  _updateBoard() {
-    this.setState({
-      inCheckmate: this.chess.in_checkmate(), // turn is in checkmate
-      inCheck: this.chess.in_check(),
-      turn: this.chess.turn(),
-      activePiece: undefined,
-      moves: undefined
-    });
   }
 
   _renderPromotionDialog() {
-    if (this.state.activePromotion) {
+    if (this.props.activePromotion) {
       return (
         <PromotionDialog
-          color={this.state.turn}
+          color={this.props.turn}
           onSelectPromotion={this.handleSelectPromotion}
-          pieces={this.state.activePromotion.pieces} />
+          pieces={this.props.activePromotion.pieces} />
       );
     }
   }
@@ -400,15 +291,9 @@ class ChessGame extends Component {
     }
   }
 
-  _canMovePiece(color) {
-    const username = this._getUsername(color);
-    return username === this.props.username &&
-      this.state.turn === color;
-  }
-
   _isMove(square) {
-    return isMove(square, this.state.moves);
+    return isMove(square, this.props.activeMoves);
   }
 }
 
-export default ChessGame;
+export default connect()(ChessGame);

@@ -1,5 +1,4 @@
 import shortid from 'shortid';
-import _ from 'lodash';
 
 export function generateGameId() {
   // Generate random string for game id
@@ -42,59 +41,15 @@ export function getIndexes (square, flipped=false) {
   return { rankIndex, fileIndex };
 }
 
-export function canBlockCheckmate(chess) {
-  const board = chess.board();
-  const turn = chess.turn();
-
-  // Naive implementation: Iterate through all empty squares and see if putting a piece
-  //  on the square blocks the check
-  return _.some(board, (rank, rankIndex) => {
-    return _.some(rank, (piece, fileIndex) => {
-      const square = getSquare(rankIndex, fileIndex);
-      if (!piece) {
-        // Note: piece type doesn't matter -- just checking if any block can be made
-        chess.put({ type: 'n', color: turn }, square);
-        if (chess.in_check()) {
-          chess.remove(square);
-          return false;
-        } else {
-          // If no longer in check, found a block!
-          chess.remove(square);
-          return true;
-        }
-      } else {
-        return false;
-      }
-    });
-  });
-}
-
 /**
  *  Returns move in Algebraic Notation
- *
- *  TODO: Implement all rules, including isCheck --> +
- *   See https://en.wikipedia.org/wiki/Algebraic_notation_(chess)
+ *   See https://en.wikipedia.org/wiki/Bughouse_chess#Notation_and_sample_game
  */
-export function getMoveNotation({ piece, from, to, isCaptureMove, droppedPiece }) {
-  let notation = to;
-  if (isCaptureMove) {
-    notation = 'x' + notation;
+export function getDropMoveNotation({ pieceType, to }) {
+  return `${pieceType.toUpperCase()}@${to}`;
+}
 
-    if (piece === 'p') {
-      notation = from[0] + notation;
-    }
-  }
-
-  if (piece && piece !== 'p') {
-    notation = piece.toUpperCase() + notation;
-  }
-
-  if (droppedPiece) {
-    notation = notation + '*';
-
-    if (droppedPiece !== 'p') {
-      notation = droppedPiece.toUpperCase() + notation;
-    }
-  }
-  return notation;
+export function getEnpassantSquare(destSquare, color) {
+  const rankDiff = color === 'w' ? -1 : 1;
+  return destSquare[0] + (Number(destSquare[1]) + rankDiff);
 }

@@ -64,7 +64,7 @@ function connectSocket(socket) {
       connections[socketGameId][boardNum][color] = isConnected;
 
       const allConnected = _.every(connections[socketGameId], board => board.w && board.b);
-      if (allConnected) {
+      if (allConnected && !timers[socketGameId]) {
         // Start game timer
         const timer = new Timer();
         timers[socketGameId] = timer;
@@ -103,9 +103,6 @@ function connectSocket(socket) {
 
   function updateConnection(isConnected) {
     const { username } = socket.request.session[socketGameId] || {};
-    if (!username) {
-      return;
-    }
 
     db.getGame(socketGameId).then((result) => {
       const initialConnections = connections[socketGameId] || [{}, {}];

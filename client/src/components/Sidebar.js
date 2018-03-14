@@ -13,7 +13,7 @@ const SidebarContainer = styled.div`
   display: flex;
   flex-direction: column;
   font-size: 13px;
-  width: 100px;
+  width: 105px;
   margin-bottom: 14px;
   height: 382px;
 `;
