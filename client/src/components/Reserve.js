@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Piece from './Piece';
@@ -8,7 +8,7 @@ const Container = styled.div`
   height: 48px;
 `;
 
-class Reserve extends Component {
+class Reserve extends PureComponent {
   static propTypes = {
     activeIndex: PropTypes.number,
     color: PropTypes.string.isRequired,
@@ -44,7 +44,7 @@ const PieceContainer = styled.div`
   `}
 `;
 
-class ReservePiece extends Component {
+class ReservePiece extends PureComponent {
   static propTypes = {
     color: PropTypes.string.isRequired,
     index: PropTypes.number.isRequired,

@@ -52,8 +52,6 @@ export function getNewPosition(moveData, boardNum, lastPosition) {
  * @param {string} captured - Concatenates all captured pieces, in the order they were captured
  * @param {Array} droppedArr - Indexes of pieces in captured string that were dropped
  */
-
-// 'nbpp', [1, 0]
 export function getReserve(capturedStr, droppedArr) {
   let result = capturedStr;
 
