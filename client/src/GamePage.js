@@ -25,10 +25,10 @@ const Boards = styled.div`
   margin: auto;
 `;
 
-class GamePage extends Component {
-  constructor() {
-    super();
-    this.state = {};
+export class GamePage extends Component {
+  static defaultProps = {
+    timers: [],
+    gameUI: []
   }
 
   componentDidMount() {
@@ -46,9 +46,8 @@ class GamePage extends Component {
   }
 
   render() {
-    if (!this.props.currentGames) {
-      return <Container>Loading...
-      </Container>;
+    if (!this.props.currentGames || !this.props.gameHistory) {
+      return <Container>Loading...</Container>;
     }
 
     const boardNum = this._getFirstBoard();
@@ -87,14 +86,10 @@ class GamePage extends Component {
   }
 
   _renderChessGame(boardNum) {
-    const { gameHistory: history, historyIndex,
+    const { gameHistory, historyIndex,
       currentGames, winner, gameUI, username, timers } = this.props;
 
-    if (!history || !currentGames) {
-      return;
-    }
-
-    const slicedHistory = history.slice(0, historyIndex + 1);
+    const slicedHistory = gameHistory.slice(0, historyIndex + 1);
     const boardPosition = _.findLast(slicedHistory, position =>
       position.boardNum === boardNum);
     if (!boardPosition) {
@@ -111,13 +106,12 @@ class GamePage extends Component {
     const { wCaptured, bCaptured } = otherBoardPosition;
 
     // TODO: selector for getReserve()
+    // TODO: Don't pass redundant position object
     return (
       <ChessGame
         boardNum={boardNum}
         {...currentGames[boardNum]}
-
         position={boardPosition}
-
         fen={fen}
         board={board}
         wReserve={getReserve(wCaptured, wDropped)}
@@ -222,8 +216,9 @@ const mapDispatchToProps = dispatch => {
   };
 }
 
-export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(
-    DragDropContext(HTML5Backend)(GamePage)
-  )
-);
+export const ConnectedGamePage = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(GamePage);
+
+export default withRouter(DragDropContext(HTML5Backend)(ConnectedGamePage));
