@@ -11,10 +11,11 @@ import PieceDragLayer from './components/PieceDragLayer';
 import PlayerSelectionDialog from './components/PlayerSelectionDialog';
 import HistoryScrubber from './components/HistoryScrubber';
 import { getOpposingBoardNum } from './utils/moveUtils';
-import { getReserve } from './utils/positionUtils';
 
 import { fetchGame, move, join, setUsername } from './actions';
 import { setGameIndex, setMoveIndex, flipBoard } from './actions/gameUI';
+
+import { currentPositionsSelector } from './selectors';
 
 const Container = styled.div`
   margin: auto;
@@ -46,8 +47,13 @@ export class GamePage extends Component {
   }
 
   render() {
-    if (!this.props.currentGames || !this.props.gameHistory) {
+    // TODO: Have this depend on fetch actions
+    if (!this.props.currentGames) {
       return <Container>Loading...</Container>;
+    }
+
+    if (!this.props.currentPositions) {
+      return <Container>Error</Container>;
     }
 
     const boardNum = this._getFirstBoard();
@@ -73,6 +79,7 @@ export class GamePage extends Component {
   }
 
   _getFirstBoard() {
+    // TODO: Selector
     const { currentGames, username } = this.props;
 
     // Return the first board that matches the current username
@@ -86,37 +93,13 @@ export class GamePage extends Component {
   }
 
   _renderChessGame(boardNum) {
-    const { gameHistory, historyIndex,
-      currentGames, winner, gameUI, username, timers } = this.props;
+    const { currentPositions, currentGames, winner, gameUI, username, timers } = this.props;
 
-    const slicedHistory = gameHistory.slice(0, historyIndex + 1);
-    const boardPosition = _.findLast(slicedHistory, position =>
-      position.boardNum === boardNum);
-    if (!boardPosition) {
-      return console.error('No board found');
-    }
-
-    const otherBoardPosition = _.findLast(slicedHistory, position =>
-      position.boardNum === getOpposingBoardNum(boardNum));
-    if (!otherBoardPosition) {
-      return console.error('No otherboard found');
-    }
-
-    const { board, fen, wDropped, bDropped, moveIndex } = boardPosition;
-    const { wCaptured, bCaptured } = otherBoardPosition;
-
-    // TODO: selector for getReserve()
-    // TODO: Don't pass redundant position object
     return (
       <ChessGame
         boardNum={boardNum}
         {...currentGames[boardNum]}
-        position={boardPosition}
-        fen={fen}
-        board={board}
-        wReserve={getReserve(wCaptured, wDropped)}
-        bReserve={getReserve(bCaptured, bDropped)}
-        moveIndex={moveIndex}
+        {...currentPositions[boardNum]}
         counters={timers[boardNum]}
         isFlipped={_.get(gameUI[boardNum], 'isFlipped')}
         onFlip={() => this.props.onFlip(boardNum)}
@@ -182,8 +165,9 @@ export class GamePage extends Component {
 }
 
 const mapStateToProps = state => ({
-  ...state.game,
-  gameUI: state.gameUI
+  ..._.pick(state.game, 'connections', 'timers', 'username', 'winner', 'currentGames'),
+  gameUI: state.gameUI,
+  currentPositions: currentPositionsSelector(state)
 });
 
 const mapDispatchToProps = dispatch => {

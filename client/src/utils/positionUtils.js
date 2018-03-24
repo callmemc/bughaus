@@ -53,6 +53,14 @@ export function getNewPosition(moveData, boardNum, lastPosition) {
  * @param {Array} droppedArr - Indexes of pieces in captured string that were dropped
  */
 export function getReserve(capturedStr, droppedArr) {
+  if (capturedStr === undefined) {
+    return console.error('No captured string');
+  }
+
+  if (droppedArr === undefined) {
+    return console.error('No dropped array');
+  }
+
   let result = capturedStr;
 
   const sortedDroppedIndexes = Immutable.asMutable(droppedArr)

@@ -27,25 +27,20 @@ describe('GamePage', () => {
 
   describe('with games', () => {
     const PROPS = {
-      gameHistory: [
+      currentPositions: [
         {
-          boardNum: 0,
-          board: [],
-          fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-          moveIndex: 0, wCaptured: 'pp', bCaptured: 'n', wDropped: [], bDropped: []
+          position: 'Test Position 0'
         },
         {
-          boardNum: 1,
-          board: [],
-          fen: 'Test Fen 2',
-          moveIndex: 0, wCaptured: '', bCaptured: '', wDropped: [0], bDropped: []
+          position: 'Test Position 1',
+          wReserve: 'p',
+          bReserve: 'n'
         }
       ],
       currentGames: [
         { moves: 'Test Moves 1', wPlayer: 'mimi' },
         { moves: 'Test Moves 2' }
-      ],
-      historyIndex: 1
+      ]
     };
 
     const { props, wrapper } = setup(PROPS);
@@ -59,7 +54,7 @@ describe('GamePage', () => {
     it('renders the first chess game with the correct props', () => {
       expect(ChessGames.first()).toHaveProp({
         boardNum: 0,
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        position: 'Test Position 0',
         moves: 'Test Moves 1'
       })
     });
@@ -67,7 +62,7 @@ describe('GamePage', () => {
     it('renders the second chess game with the correct props', () => {
       expect(ChessGames.at(1)).toHaveProp({
         boardNum: 1,
-        fen: 'Test Fen 2',
+        position: 'Test Position 1',
         moves: 'Test Moves 2'
       });
     });
@@ -84,9 +79,11 @@ describe('GamePage', () => {
 describe('ConnectedGamePage', () => {
   const STORE_STATE = {
     game: {
-      gameHistory: 'Test Game History',
-      currentGames: 'Test Current Games',
-      historyIndex: 1
+      username: 'Test Name',
+      connections: 'Test Connections',
+      timers: 'Test Timers',
+      winner: 'Test Winner',
+      currentGames: 'Test Current Games'
     },
     gameUI: 'Test Game UI'
   };
@@ -104,9 +101,11 @@ describe('ConnectedGamePage', () => {
     const GamePage = wrapper.find('GamePage');
     expect(GamePage).toExist();
     expect(GamePage).toHaveProp({
-      gameHistory: 'Test Game History',
+      username: 'Test Name',
+      connections: 'Test Connections',
+      timers: 'Test Timers',
+      winner: 'Test Winner',
       currentGames: 'Test Current Games',
-      historyIndex: 1
     });
     expect(GamePage).toHaveProp('gameUI', 'Test Game UI');
   });

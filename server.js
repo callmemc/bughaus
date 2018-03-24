@@ -55,9 +55,6 @@ db.connectClient().then((dbInstance) => {
     const gameId = req.params.id;
 
     db.getGame(gameId).then((result) => {
-      console.log(gameId);
-      console.log(result);
-
       // Username associated with session and game
       const { username } = req.session[gameId] || {};
       res.json(_.extend(

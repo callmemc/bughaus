@@ -23,6 +23,8 @@ const Username = styled.div`
 
 class ChessGame extends Component {
   static propTypes = {
+    position: PropTypes.object.isRequired,
+
     /* Describe board state */
     activeMoves: PropTypes.array,       // Array of valid moves for activePiece
     activePiece: PropTypes.object,      // Piece selected by the user
@@ -51,7 +53,8 @@ class ChessGame extends Component {
       return <div />;
     }
 
-    const { isFlipped, isGameOver, wReserve, bReserve } = this.props;
+    const { isFlipped, isGameOver, wReserve, bReserve, position } = this.props;
+    const { moveIndex, board } = position;
     const activeSquare = _.get(this.props.activePiece, 'square');
     const {
       from: prevFromSquare,
@@ -68,7 +71,7 @@ class ChessGame extends Component {
         {this._renderUsername(topColor)}
         <PlayContainer>
           <Chessboard
-            board={this.props.board}
+            board={board}
             boardNum={this.props.boardNum}
             activeSquare={activeSquare}
             flipped={this.props.isFlipped}
@@ -87,7 +90,7 @@ class ChessGame extends Component {
             username={this.props.username} />
           <Sidebar
             moves={this.props.moves}
-            currentMoveIndex={this.props.moveIndex}
+            currentMoveIndex={moveIndex}
             counters={this.props.counters}
             bottomColor={bottomColor}
             topColor={topColor}
@@ -274,15 +277,16 @@ class ChessGame extends Component {
   }
 
   _isFrozen() {
-    const { moves, moveIndex, isGameOver } = this.props;
+    const { moves, isGameOver } = this.props;
     // True if viewing current move
-    const isCurrentMove = _.isEmpty(moves) || moveIndex === moves.length - 1;
+    const isCurrentMove = _.isEmpty(moves) || this._getMoveIndex() === moves.length - 1;
     return isGameOver || !isCurrentMove;
   }
 
   // Current move being viewed
   _getCurrentMove() {
-    const { moves, moveIndex } = this.props;
+    const { moves } = this.props;
+    const moveIndex = this._getMoveIndex();
 
     if (_.isEmpty(moves) || moveIndex === -1) {
       return {};
@@ -293,6 +297,10 @@ class ChessGame extends Component {
 
   _isMove(square) {
     return isMove(square, this.props.activeMoves);
+  }
+
+  _getMoveIndex() {
+    return this.props.position.moveIndex;
   }
 }
 
