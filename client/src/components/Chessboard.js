@@ -29,6 +29,26 @@ const CheckedKingOverlay = styled.div`
   position: absolute;
 `;
 
+
+// Transition defines piece animation when piece has been moved by means
+//  other than drag-and-drop, e.g.
+//  - Click move
+//  - Another player has moved the piece
+const AnimatedPieceContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  display: flex;
+
+  ${props => props.shouldTransition && `
+    transition: 0.2s linear;
+  `}
+`;
+
+
 class Chessboard extends PureComponent {
   static propTypes = {
     flipped: PropTypes.bool,
@@ -101,7 +121,7 @@ class Chessboard extends PureComponent {
   }
 
   renderPieces() {
-    const { board, turn, inCheck } = this.props;
+    const { board, turn, inCheck, flipped } = this.props;
     if (!board) {
       return;
     }
@@ -115,7 +135,7 @@ class Chessboard extends PureComponent {
         return <div key={i} />;
       }
 
-      const { key, piece, square, color, promotion } = pieceObj;
+      let { key, piece, square, color, promotion } = pieceObj;
       const { rankIndex, fileIndex } = getIndexes(square, this.props.flipped);
       const style = {transform: `translate(${fileIndex*48}px, ${rankIndex*48}px)`};
 
@@ -123,8 +143,14 @@ class Chessboard extends PureComponent {
         checkedKing = <CheckedKingOverlay key='king' style={style} />;
       }
 
+      // Prevent animation when flipping board by giving a piece a different component key
+      //  if board is flipped
+      if (flipped) {
+        key = key + '--f';
+      }
+
       return (
-        <PieceContainer
+        <AnimatedPieceContainer
           key={key}
           style={style}
           shouldTransition={!(square === this.state.dragDestSquare)}>
@@ -136,7 +162,7 @@ class Chessboard extends PureComponent {
             onSelect={this.props.onSelectPiece}
             pieceType={promotion || piece}
             square={square} />
-        </PieceContainer>
+        </AnimatedPieceContainer>
       );
     });
 
@@ -151,20 +177,6 @@ class Chessboard extends PureComponent {
     this.setState({ dragDestSquare: to });
   }
 }
-
-const PieceContainer = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  width: 48px;
-  height: 48px;
-  display: flex;
-
-  ${props => props.shouldTransition && `
-    transition: 0.2s linear;
-  `}
-`;
 
 class FileCoordinates extends PureComponent {
   render() {

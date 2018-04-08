@@ -58,6 +58,7 @@ export default (state = initialState, action) => {
   const { boardNum } = action;
 
   switch (action.type) {
+    // TODO: isFetching
     case 'REQUEST_GAME':
       return initialState;
 

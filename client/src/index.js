@@ -10,6 +10,7 @@ import './index.css';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
+// Thunk middleware: if you dispatch a function, Redux Thunk middleware will give it dispatch as an argument
 const store = createStore(
   rootReducer,
   applyMiddleware(thunkMiddleware, socketMiddleware)
